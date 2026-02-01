@@ -10,8 +10,8 @@ from .models import User
 # ----------------------------
 class UserListCreateView(generics.ListCreateAPIView):
     """
-    GET /users/       -> 列出所有用户
-    POST /users/      -> 注册新用户
+    GET /user/       -> 列出所有用户
+    POST /user/      -> 注册新用户
     """
 
     queryset = User.objects.all()
@@ -36,9 +36,9 @@ class UserListCreateView(generics.ListCreateAPIView):
 # ----------------------------
 class UserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """
-    GET /users/<id>/       -> 用户详情
-    PATCH /users/<id>/     -> 修改用户
-    DELETE /users/<id>/    -> 删除用户
+    GET /user/<id>/       -> 用户详情
+    PATCH /user/<id>/     -> 修改用户
+    DELETE /user/<id>/    -> 删除用户
     """
 
     queryset = User.objects.all()
