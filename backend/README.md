@@ -49,7 +49,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Notes and tips
+## Notes and tips
 - To reset a local database (dangerous, destructive):
 
 ```bash
