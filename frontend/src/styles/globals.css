@@ -1,0 +1,49 @@
+:root {
+    --bg-color: #f1f1f1;
+    /*Title 1*/
+    --title-1-color: #000000;
+    --title-1-weight: 200;
+    --title-1-font-size: 42px;
+    /*Subtitle 1*/
+    --subtitle-1-weight: 150;
+    --subtitle-1-font-size: 16px;
+    --subtitle-1-color: #686868;
+    /*Button 1 (dark, round)*/
+    --button-1-color: #000000;
+    --button-1-text-color: #ffffff;
+    --button-1-border-radius: 24px;
+    --button-1-text-font-size: 14px;
+    --button-1-height: 48px;
+    --button-1-width: 120px;
+}
+
+.title-1 {
+    font-size: var(--title-1-font-size);
+    font-family: sans-serif;
+    color: var(--title-1-color);
+    font-weight: var(--title-1-weight);
+}
+
+.subtitle-1 {
+    font-size: var(--subtitle-1-font-size);
+    font-family: sans-serif;
+    color: var(--subtitle-1-color);
+    font-weight: var(--subtitle-1-weight);
+}
+
+.start-button {
+    background-color: var(--button-1-color);
+    color: var(--button-1-text-color);
+    border-radius: var(--button-1-border-radius);
+    font-size: var(--button-1-text-font-size);
+    height: var(--button-1-height);
+    width: var(--button-1-width);
+}
+
+.centered {
+    text-align: center;
+}
+
+body {
+  background-color: var(--bg-color);
+}
