@@ -1,0 +1,153 @@
+import { useState } from 'react'
+import './login-page.css'
+
+type LoginPageProps = {
+  onLogin?: () => void
+}
+
+type ActiveTab = 'login' | 'register'
+
+export function LoginPage({ onLogin }: LoginPageProps) {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+
+  const handleLoginSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError('')
+    onLogin?.()
+  }
+
+  const handleRegisterSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
+    setError('')
+    onLogin?.()
+  }
+
+  return (
+    <main className="login-page">
+      <section className="login-panel">
+        <header className="login-header">
+          <h1 className="login-title">Welcome back</h1>
+          <p className="login-subtitle">Log in to continue your learning</p>
+        </header>
+
+        <div className="login-tabs" role="tablist">
+          <button
+            type="button"
+            className={activeTab === 'login' ? 'tab-button tab-active' : 'tab-button tab-inactive'}
+            onClick={() => {
+              setActiveTab('login')
+              setError('')
+            }}
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            className={activeTab === 'register' ? 'tab-button tab-active' : 'tab-button tab-inactive'}
+            onClick={() => {
+              setActiveTab('register')
+              setError('')
+            }}
+          >
+            Sign Up
+          </button>
+        </div>
+
+        {activeTab === 'login' ? (
+          <form className="login-form" onSubmit={handleLoginSubmit}>
+            <label className="field">
+              <span className="field-label">Email</span>
+              <input
+                className="field-input"
+                type="email"
+                name="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="your@email.com"
+                autoComplete="email"
+                required
+              />
+            </label>
+
+            <label className="field">
+              <span className="field-label">Password</span>
+              <input
+                className="field-input"
+                type="password"
+                name="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                required
+              />
+            </label>
+
+            <button className="primary-button" type="submit">
+              Log In
+            </button>
+          </form>
+        ) : (
+          <form className="login-form" onSubmit={handleRegisterSubmit}>
+            <label className="field">
+              <span className="field-label">Username</span>
+              <input
+                className="field-input"
+                type="text"
+                name="username"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="Enter your username"
+                autoComplete="username"
+                required
+              />
+            </label>
+
+            <label className="field">
+              <span className="field-label">Password</span>
+              <input
+                className="field-input"
+                type="password"
+                name="new-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Enter your password"
+                autoComplete="new-password"
+                required
+              />
+            </label>
+
+            <label className="field">
+              <span className="field-label">Confirm Password</span>
+              <input
+                className="field-input"
+                type="password"
+                name="confirm-password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                placeholder="Confirm your password"
+                autoComplete="new-password"
+                required
+              />
+            </label>
+
+            <button className="primary-button" type="submit">
+              Sign Up
+            </button>
+          </form>
+        )}
+
+        {error ? <p className="error-text">{error}</p> : null}
+      </section>
+    </main>
+  )
+}
