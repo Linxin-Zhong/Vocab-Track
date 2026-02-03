@@ -1,0 +1,146 @@
+:root {
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-label: #374151;
+  --border-color: #e5e7eb;
+  --tab-bg: #f3f4f6;
+  --danger: #ef4444;
+}
+
+html,
+body,
+#root {
+  background-color: #ffffff;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  background-color: #ffffff;
+}
+
+.login-panel {
+  width: min(90vw, 560px);
+  display: grid;
+  gap: 32px;
+}
+
+.login-header {
+  text-align: center;
+}
+
+.login-title {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.login-subtitle {
+  margin: 12px 0 0;
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.login-tabs {
+  display: flex;
+  width: 100%;
+  height: 48px;
+  padding: 4px;
+  background: transparent;
+  border-radius: 14px;
+  gap: 12px;
+}
+
+.tab-button {
+  flex: 1;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  cursor: pointer;
+  outline: none;
+}
+
+.tab-active {
+  background: #1f2937;
+  color: #ffffff;
+  border-color: #1f2937;
+  box-shadow: none;
+}
+
+.tab-inactive:hover {
+  background: #e5e7eb;
+}
+
+.tab-button:focus,
+.tab-button:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.login-form {
+  display: grid;
+  gap: 22px;
+}
+
+.field {
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.field-label {
+  font-size: 14px;
+  color: var(--text-label);
+}
+
+.field-input {
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  font-size: 16px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+}
+
+.field-input::placeholder {
+  color: #9ca3af;
+}
+
+.primary-button {
+  width: 100%;
+  height: 72px;
+  border-radius: 9999px;
+  border: none;
+  background: #111111;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.primary-button:hover {
+  background: #1f2937;
+}
+
+.error-text {
+  margin: 0;
+  color: var(--danger);
+  font-size: 14px;
+}
