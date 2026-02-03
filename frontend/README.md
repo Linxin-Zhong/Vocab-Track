@@ -25,6 +25,11 @@ npm run dev
 ## Testing
 The frontend uses Vitest with React Testing Library and jsdom for component tests (UI-level integration in jsdom).
 
+If Vitest not installed: 
+```bash
+npm install -D vitest
+```
+
 Run tests once (CI-style):
 ```bash
 npm run test:run
