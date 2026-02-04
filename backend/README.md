@@ -37,10 +37,10 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
-6. (Optional) Create a superuser:
+6. (Optional) Create a superuser and setup password:
 
 ```bash
-python manage.py createsuperuser
+python manage.py createsuperuser --email admin@example.com
 ```
 
 7. Run the development server:
@@ -48,6 +48,9 @@ python manage.py createsuperuser
 ```bash
 python manage.py runserver
 ```
+
+8. (Optional) View the Django admin dashboard
+http://127.0.0.1:8000/admin/
 
 ## Notes and tips
 - To reset a local database (dangerous, destructive):
