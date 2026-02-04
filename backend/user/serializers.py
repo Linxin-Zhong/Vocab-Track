@@ -13,7 +13,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return User.objects.create_user(
-            email=validated_data["email"],
+            email=validated_data["email"].strip().lower(),
             password=validated_data["password"],
             user_name=validated_data.get("user_name", ""),
         )

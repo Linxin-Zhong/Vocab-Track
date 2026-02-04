@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 from word.models import Word
 from .models import Book, BookWord
 from .serializers import (
@@ -28,18 +27,16 @@ class BookViewSet(ModelViewSet):
 
     def get_queryset(self):
         # Restrict returned books to those owned by the requesting user or default books.
-        return Book.objects.filter(
-            Q(user_id=self.request.user) | Q(user_id__isnull=True)
-        ).distinct()
+        return Book.objects.filter(Q(user=self.request.user) | Q(user__isnull=True)).distinct()
 
     def perform_create(self, serializer):
         # Ensure the created Book is associated with the current user.
-        serializer.save(user_id=self.request.user)
+        serializer.save(user=self.request.user)
 
     def update(self, request, *args, **kwargs):
         # Prevent updating default (official) books — only allow user-owned books
         instance = self.get_object()
-        if instance.user_id is None:
+        if instance.user is None:
             return Response(
                 {"detail": "Cannot modify default (official) books."}, status=403
             )
@@ -48,7 +45,7 @@ class BookViewSet(ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         # Same restriction for PATCH
         instance = self.get_object()
-        if instance.user_id is None:
+        if instance.user is None:
             return Response(
                 {"detail": "Cannot modify default (official) books."}, status=403
             )
@@ -57,7 +54,7 @@ class BookViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         # Prevent deleting default (official) books — only allow user-owned books
         instance = self.get_object()
-        if instance.user_id is None:
+        if instance.user is None:
             return Response(
                 {"detail": "Cannot delete default (official) books."}, status=403
             )
@@ -87,9 +84,9 @@ class BookWordViewSet(ViewSet):
         # to the requesting user. Use `select_related('wordid')` to avoid
         # extra queries when the serializer accesses the related Word.
         qs = BookWord.objects.filter(
-            Q(book_id__user_id=request.user) | Q(book_id__user_id__isnull=True),
+            Q(book__user=request.user) | Q(book__user__isnull=True),
             book_id=book_pk,
-        ).select_related("word_id")
+        ).select_related("word")
 
         serializer = BookWordSerializer(qs, many=True)
         return Response(serializer.data)
@@ -106,7 +103,7 @@ class BookWordViewSet(ViewSet):
             return Response({"detail": "Not found."}, status=404)
 
         # Disallow adding BookWords to default (official) books
-        if book.user_id is None:
+        if book.user is None:
             return Response(
                 {"detail": "Cannot add BookWords to default (official) books."},
                 status=403,
@@ -119,8 +116,8 @@ class BookWordViewSet(ViewSet):
             word, _ = Word.objects.get_or_create(word_text=item["word_text"])
 
             book_word, is_new = BookWord.objects.get_or_create(
-                book_id=book,
-                word_id=word,
+                book=book,
+                word=word,
                 defaults={
                     "meaning": item["meaning"],
                     "example": item.get("example", ""),
@@ -150,38 +147,40 @@ class BookWordViewSet(ViewSet):
     def update(self, request, pk=None, book_pk=None):
         # Find the BookWord; return 404 if missing
         try:
-            bookword = BookWord.objects.get(id=pk, book_id=book_pk)
+            book_word = BookWord.objects.get(id=pk, book=book_pk)
         except BookWord.DoesNotExist:
             return Response({"detail": "Not found."}, status=404)
 
         # Disallow editing entries in default (official) books
-        parent_book = bookword.book_id
-        if parent_book.user_id is None:
+        parent_book = book_word.book
+        if parent_book.user is None:
             return Response(
                 {"detail": "Cannot modify BookWord in default (official) books."},
                 status=403,
             )
 
-        serializer = BookWordUpdateSerializer(bookword, data=request.data, partial=True)
+        serializer = BookWordUpdateSerializer(
+            book_word, data=request.data, partial=True
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response(BookWordSerializer(bookword).data)
+        return Response(BookWordSerializer(book_word).data)
 
     def destroy(self, request, pk=None, book_pk=None):
         # Find the BookWord; return 404 if missing
         try:
-            book_word = BookWord.objects.get(id=pk, book_id=book_pk)
+            book_word = BookWord.objects.get(id=pk, book=book_pk)
         except BookWord.DoesNotExist:
             return Response({"detail": "Not found."}, status=404)
 
-        parent_book = book_word.book_id
-        if parent_book.user_id is None:
+        parent_book = book_word.book
+        if parent_book.user is None:
             return Response(
                 {"detail": "Cannot delete BookWord from default (official) books."},
                 status=403,
             )
 
-        word_text = book_word.word_id.word_text
+        word_text = book_word.word.word_text
         book_word.delete()
         return Response({"detail": f"delete {word_text} success"}, status=200)

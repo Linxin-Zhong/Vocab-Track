@@ -11,7 +11,7 @@ class BookSerializer(serializers.ModelSerializer):
 
 
 class BookWordSerializer(serializers.ModelSerializer):
-    word_text = serializers.CharField(source="word_id.word_text", read_only=True)
+    word_text = serializers.CharField(source="word.word_text", read_only=True)
 
     class Meta:
         model = BookWord
