@@ -3,11 +3,12 @@ import './login-page.css'
 
 type LoginPageProps = {
   onLogin?: (username: string, password: string) => void
+  onRegister?: (username: string, password: string) => void
 }
 
 type ActiveTab = 'login' | 'register'
 
-export function LoginPage({ onLogin }: LoginPageProps) {
+export function LoginPage({ onLogin, onRegister}: LoginPageProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -27,6 +28,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       return
     }
     setError('')
+    onRegister?.(email, password)
   }
 
   return (
