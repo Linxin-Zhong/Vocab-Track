@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './login-page.css'
 
 type LoginPageProps = {
-  onLogin?: () => void
+  onLogin?: (username: string, password: string) => void
 }
 
 type ActiveTab = 'login' | 'register'
@@ -11,14 +11,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
 
   const handleLoginSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError('')
-    onLogin?.()
+    onLogin?.(email, password)
   }
 
   const handleRegisterSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -28,7 +27,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       return
     }
     setError('')
-    onLogin?.()
   }
 
   return (
@@ -99,15 +97,15 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         ) : (
           <form className="login-form" onSubmit={handleRegisterSubmit}>
             <label className="field">
-              <span className="field-label">Username</span>
+              <span className="field-label">Email</span>
               <input
                 className="field-input"
-                type="text"
-                name="username"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                placeholder="Enter your username"
-                autoComplete="username"
+                type="email"
+                name="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="Enter your email"
+                autoComplete="email"
                 required
               />
             </label>

@@ -11,7 +11,7 @@ describe('LoginPage', () => {
       within(screen.getByRole('tablist')).getByRole('button', { name: /sign up/i })
     )
 
-    await user.type(screen.getByLabelText(/username/i), 'reader')
+    await user.type(screen.getByLabelText(/email/i), 'reader@gmail.com')
     await user.type(screen.getByLabelText(/^password$/i), 'secret123')
     await user.type(screen.getByLabelText(/confirm password/i), 'secret456')
 
