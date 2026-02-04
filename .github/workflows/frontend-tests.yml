@@ -1,5 +1,10 @@
 name: Frontend Tests
-run-name: Frontend tests — PR #${{ github.event.pull_request.number || github.ref_name }}
+run-name: >-
+  Frontend Tests — ${{ 
+    github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) ||
+    (github.event_name == 'push' && github.ref == 'refs/heads/main' && format('main ({0})', github.sha)) ||
+    format('manual ({0})', github.ref_name)
+  }}
 
 on:
   workflow_dispatch:
@@ -15,6 +20,7 @@ on:
 
 jobs:
   test-frontend:
+    name: Vitest
     runs-on: ubuntu-latest
     defaults:
       run:
