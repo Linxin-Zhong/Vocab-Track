@@ -35,14 +35,23 @@ Run tests once (CI-style):
 npm run test:run
 ```
 
+Run tests with coverage:
+```bash
+npm run test:coverage
+```
+
 Run in watch mode (reruns on file changes):
 ```bash
 npm test
 ```
 
-Current tests live next to the components/pages in `frontend/src/pages/`:
+Current FE UI tests live next to the components/pages in `frontend/src/pages/`:
 - `frontend/src/pages/starting_page.test.tsx`
 - `frontend/src/pages/login_page.test.tsx`
+- `frontend/src/pages/signup_page.test.tsx`
+
+App-level tests live at:
+- `frontend/src/App.test.tsx`
 
 ## CI
 Frontend tests run in GitHub Actions via the `Frontend Tests` workflow.
