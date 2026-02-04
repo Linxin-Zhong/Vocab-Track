@@ -43,3 +43,9 @@ npm test
 Current tests live next to the components/pages in `frontend/src/pages/`:
 - `frontend/src/pages/starting_page.test.tsx`
 - `frontend/src/pages/login_page.test.tsx`
+
+## CI
+Frontend tests run in GitHub Actions via the `Frontend Tests` workflow.
+- Triggers: pull requests and pushes to `main` (only when `frontend/**` or the workflow file changes)
+- Manual runs: available via Actions → `Frontend Tests` (requires the workflow to be on `main`)
+- Command used: `npm run test:run`
