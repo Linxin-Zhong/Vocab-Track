@@ -16,26 +16,22 @@ export default function App() {
   const handleLogin = async (email: string, password: string) => {
     const res = await login(email, password);
     if (res.success) {
-      // TODO: set up user
-      // TODO: implement dashboard UI
+      // TODO: set up user & implement dashboard UI
       // navigateTo('dashboard');
       console.log('login succeeded.')
     } else {
+      // TODO: display error messages.
       switch (res.errorType) {
         case 'AUTH':
-          // TODO: display auth err msg
           console.error('login failed: auth.');
           break;
         case 'NETWORK':
-          // TODO: display network err msg
           console.error('login failed: network.');
           break;
         case 'RATE_LIMIT':
-          // TODO: display rate err msg
           console.error('login failed: rate.');
           break;
         default:
-          // TODO: display unknown err msg
           console.error('login failed: unknown.');
       }
     }
@@ -44,30 +40,25 @@ export default function App() {
   const handleRegister = async (email: string, password: string) => {
     const res = await register(email, password);
     if (res.success) {
-      // TODO: set up user
-      // TODO: implement dashboard UI
+      // TODO: set up user & implement dashboard UI
       // navigateTo('dashboard');
       console.info('register succeeded.');
     } else {
+      // TODO: display error messages.
       switch (res.errorType) {
         case 'NETWORK':
-          // TODO: display network err msg
           console.error('register failed: network.');
           break;
         case 'VALIDATION':
-          // TODO: display validation err msg
           console.error('register failed: validation.');
           break;
         case 'CONFLICT':
-          // TODO: display conflict err msg
           console.error('register failed: conflict.');
           break;
         case 'RATE_LIMIT':
-          // TODO: display rate err msg
           console.error('register failed: rate.');
           break;
         default:
-          // TODO: display unknown err msg
           console.error('register failed: unknown.');
       }
     }

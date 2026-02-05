@@ -5,14 +5,18 @@ React + TypeScript frontend for Vocab-Track.
 ## Prerequisite
 Make sure you have Node.js installed:
 
-- **Node.js version:** 20.13.1
-- **NPM version:** 10.7.0 (comes with Node.js)
+- **Node.js version:** 20.13.1 or later
+- **NPM version:** 10.7.0 or later (comes with Node.js)
 
 You can check your versions with:
 
 ```bash
 node -v
 npm -v
+```
+Make sure `.env` file in `frontend/` exists and provide `VITE_API_BASE`, which is used by the FE to communicate with the BE. For example:
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
 
 ## Setup
