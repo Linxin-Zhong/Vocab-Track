@@ -10,7 +10,6 @@ export type AuthResult =
   | { success: false; errorType: 'NETWORK' | 'AUTH' | 'RATE_LIMIT' | 'VALIDATION' | 'CONFLICT' | 'UNKNOWN' };
 
 export async function login(email: string, password: string): Promise<AuthResult> {
-  console.log('login called.');
   try {
     const data = await apiRequest<AuthResponse>(ENDPOINTS.USER.LOGIN, {
       method: 'POST',
@@ -31,7 +30,6 @@ export async function login(email: string, password: string): Promise<AuthResult
 }
 
 export async function register(email: string, password: string): Promise<AuthResult> {
-  console.log('register called.');
   try {
     const data = await apiRequest<AuthResponse>(ENDPOINTS.USER.REGISTER, {
       method: 'POST',
