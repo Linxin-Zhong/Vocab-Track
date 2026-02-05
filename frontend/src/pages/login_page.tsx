@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './login-page.css'
+import './login_page.css'
 
 type LoginPageProps = {
   onLogin?: (username: string, password: string) => void
