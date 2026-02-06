@@ -2,7 +2,8 @@ import { useState } from 'react'
 import './App.css'
 import { StartingPage } from './pages/starting_page'
 import { LoginPage } from './pages/login_page'
-import { login, register} from './services/authService'
+import { login, register, logout } from './services/authService'
+import { Dashboard } from './pages/dashboard'
 
 type Screen = 'landing' | 'signup' | 'dashboard'
 
@@ -17,7 +18,7 @@ export default function App() {
     const res = await login(email, password);
     if (res.success) {
       // TODO: set up user & implement dashboard UI
-      // navigateTo('dashboard');
+      navigateTo('dashboard');
       console.log('login succeeded.')
     } else {
       // TODO: display error messages.
@@ -41,7 +42,7 @@ export default function App() {
     const res = await register(email, password);
     if (res.success) {
       // TODO: set up user & implement dashboard UI
-      // navigateTo('dashboard');
+      navigateTo('dashboard');
       console.info('register succeeded.');
     } else {
       // TODO: display error messages.
@@ -64,6 +65,17 @@ export default function App() {
     }
   }
 
+  const handleLogout = async () => {
+    const res = await logout(); 
+    if (res.success) {
+      console.info('logout succeeded.');
+    } else {
+      console.error('logout failed,', res.errorType);
+    }
+    // TODO: reset user.
+    navigateTo('landing');
+  }
+
   return (
     <div>
       {currentScreen === 'landing' && (
@@ -71,6 +83,9 @@ export default function App() {
       )}
       {currentScreen === 'signup' && (
         <LoginPage onLogin={handleLogin} onRegister={handleRegister} />
+      )}
+      {currentScreen === 'dashboard' && (
+        <Dashboard wordsReviewedToday={0} onStartSession={() => {console.log('start study button clicked')}} onLogout={handleLogout} />
       )}
     </div>
   )

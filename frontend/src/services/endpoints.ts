@@ -3,5 +3,6 @@ export const ENDPOINTS = {
     BASE: '/user/',
     REGISTER: '/user/',
     LOGIN: '/user/login/',
+    LOGOUT: '/user/logout/',
   },
 } as const;

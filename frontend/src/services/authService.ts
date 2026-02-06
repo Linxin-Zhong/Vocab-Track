@@ -49,3 +49,19 @@ export async function register(email: string, password: string): Promise<AuthRes
     }
   }
 }
+
+export async function logout(): Promise<AuthResult> {
+  try {
+    await apiRequest<AuthResponse>(ENDPOINTS.USER.LOGOUT, {
+      method: 'POST',
+    });
+    accessToken = null;
+    return { success: true, user: {} as User };
+  } catch (error: any) {
+    if (!error.status) return { success: false, errorType: 'NETWORK' };
+    switch (error.status) {
+      case 401: return { success: false, errorType: 'AUTH' };
+      default: return { success: false, errorType: 'UNKNOWN' };
+    }
+  }
+}
