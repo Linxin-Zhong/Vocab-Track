@@ -14,7 +14,7 @@ You can check your versions with:
 node -v
 npm -v
 ```
-Make sure `.env` file in `frontend/` exists and provide `VITE_API_BASE`, which is used by the FE to communicate with the BE. For example:
+Make sure to add a `.env` file in `frontend/` if it does not exist and provide `VITE_API_BASE`, which is used by the FE to communicate with the BE. For example:
 ```env
 VITE_API_BASE_URL=http://127.0.0.1:8000
 ```
