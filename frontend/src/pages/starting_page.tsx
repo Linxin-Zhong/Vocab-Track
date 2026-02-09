@@ -6,20 +6,22 @@ type StartingPageProps = {
 
 export function StartingPage({ onGetStarted }: StartingPageProps) {
   return (
-    <main className="starting-page-container">
-      <h1 className="title-1 centered">
-        Vocab Track
-      </h1>
-      <p className="subtitle-1 centered">
-        Build your vocabulary through focused, daily practice with flashcards
-      </p>
-      <button
-        onClick={onGetStarted ?? (() => console.log('Get Started clicked'))}
-        className="start-button centered"
-        type="button"
-      >
-        Get Started
-      </button>
-    </main>
+     <div className="starting-root">
+      <div className="starting-container">
+        <div className="starting-text-group">
+          <h1 className="starting-title">Vocab Track</h1>
+          <p className="starting-subtitle">
+            Build your vocabulary through focused, daily practice with flashcards
+          </p>
+        </div>
+
+        <button
+          onClick={onGetStarted}
+          className="starting-button"
+        >
+          Get Started
+        </button>
+      </div>
+    </div>
   )
 }
