@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "user",
     "word",
     "book",
+    "review",
 ]
 
 # Explicitly specify custom user model rather than using default in django.contrib.auth

@@ -1,5 +1,4 @@
-from rest_framework.viewsets import ViewSet
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
@@ -27,7 +26,7 @@ class BookViewSet(ModelViewSet):
 
     def get_queryset(self):
         # Restrict returned books to those owned by the requesting user or default books.
-        return Book.objects.filter(Q(user=self.request.user) | Q(user__isnull=True)).distinct()
+        return Book.objects.filter(Q(user=self.request.user) | Q(user__isnull=True))
 
     def perform_create(self, serializer):
         # Ensure the created Book is associated with the current user.
@@ -64,7 +63,7 @@ class BookViewSet(ModelViewSet):
         return Response({"detail": f"delete {book_name} success"}, status=200)
 
 
-class BookWordViewSet(ViewSet):
+class BookWordViewSet(GenericViewSet):
     """Nested viewset to manage BookWord items for a particular Book.
 
     Endpoints are nested under a Book (book_pk). All operations verify
@@ -102,10 +101,17 @@ class BookWordViewSet(ViewSet):
         except Book.DoesNotExist:
             return Response({"detail": "Not found."}, status=404)
 
-        # Disallow adding BookWords to default (official) books
+        # Disallow adding BookWords to default (official) books or books
+        # not owned by the requesting user
         if book.user is None:
             return Response(
                 {"detail": "Cannot add BookWords to default (official) books."},
+                status=403,
+            )
+
+        if book.user != request.user:
+            return Response(
+                {"detail": "You do not have permission to add words to this book."},
                 status=403,
             )
 
@@ -141,7 +147,7 @@ class BookWordViewSet(ViewSet):
             "failed": failed,
         }
 
-        status_code = 201 if created else 200
+        status_code = 201 if created else 400
         return Response(response_data, status=status_code)
 
     def update(self, request, pk=None, book_pk=None):
@@ -151,11 +157,17 @@ class BookWordViewSet(ViewSet):
         except BookWord.DoesNotExist:
             return Response({"detail": "Not found."}, status=404)
 
-        # Disallow editing entries in default (official) books
+        # Disallow editing entries in default (official) books or books
+        # not owned by the requesting user
         parent_book = book_word.book
         if parent_book.user is None:
             return Response(
                 {"detail": "Cannot modify BookWord in default (official) books."},
+                status=403,
+            )
+        if parent_book.user != request.user:
+            return Response(
+                {"detail": "You do not have permission to modify words in this book."},
                 status=403,
             )
 
@@ -180,7 +192,13 @@ class BookWordViewSet(ViewSet):
                 {"detail": "Cannot delete BookWord from default (official) books."},
                 status=403,
             )
-
+        if parent_book.user != request.user:
+            return Response(
+                {
+                    "detail": "You do not have permission to delete words from this book."
+                },
+                status=403,
+            )
         word_text = book_word.word.word_text
         book_word.delete()
         return Response({"detail": f"delete {word_text} success"}, status=200)
