@@ -1,36 +1,53 @@
-import { useState } from 'react'
-import './login_page.css'
+import { useState } from "react";
+import "./login_page.css";
+import { AuthError } from "../types/auth";
 
 type LoginPageProps = {
-  onLogin?: (username: string, password: string) => void
-  onRegister?: (username: string, password: string) => void
-}
+  onLogin?: (username: string, password: string) => void;
+  onRegister?: (username: string, password: string) => void;
+};
 
-type ActiveTab = 'login' | 'register'
+type ActiveTab = "login" | "register";
 
-export function LoginPage({ onLogin, onRegister}: LoginPageProps) {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('login')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState('')
+export function LoginPage({ onLogin, onRegister }: LoginPageProps) {
+  const [activeTab, setActiveTab] = useState<ActiveTab>("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleLoginSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setError('')
-    onLogin?.(email, password)
-  }
-
-  const handleRegisterSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.')
-      return
+  const handleLoginSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    try {
+      await onLogin?.(email, password);
+      console.log("1234")
+    } catch (err) {
+      if (err instanceof AuthError) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
     }
-    setError('')
-    onRegister?.(email, password)
-  }
+  };
 
+  const handleRegisterSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setError("");
+    try {
+      await onRegister?.(email, password);
+    } catch (err) {
+      if (err instanceof AuthError) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
+    }
+  };
   return (
     <main className="login-page">
       <section className="login-panel">
@@ -42,27 +59,35 @@ export function LoginPage({ onLogin, onRegister}: LoginPageProps) {
         <div className="login-tabs" role="tablist">
           <button
             type="button"
-            className={activeTab === 'login' ? 'tab-button tab-active' : 'tab-button tab-inactive'}
+            className={
+              activeTab === "login"
+                ? "tab-button tab-active"
+                : "tab-button tab-inactive"
+            }
             onClick={() => {
-              setActiveTab('login')
-              setError('')
+              setActiveTab("login");
+              setError("");
             }}
           >
             Login
           </button>
           <button
             type="button"
-            className={activeTab === 'register' ? 'tab-button tab-active' : 'tab-button tab-inactive'}
+            className={
+              activeTab === "register"
+                ? "tab-button tab-active"
+                : "tab-button tab-inactive"
+            }
             onClick={() => {
-              setActiveTab('register')
-              setError('')
+              setActiveTab("register");
+              setError("");
             }}
           >
             Sign Up
           </button>
         </div>
 
-        {activeTab === 'login' ? (
+        {activeTab === "login" ? (
           <form className="login-form" onSubmit={handleLoginSubmit}>
             <label className="field">
               <span className="field-label">Email</span>
@@ -149,5 +174,5 @@ export function LoginPage({ onLogin, onRegister}: LoginPageProps) {
         {error ? <p className="error-text">{error}</p> : null}
       </section>
     </main>
-  )
+  );
 }

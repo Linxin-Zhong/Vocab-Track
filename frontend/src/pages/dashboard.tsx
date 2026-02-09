@@ -1,11 +1,15 @@
-import './dashboard.css';
+import "./dashboard.css";
 interface DashboardProps {
   wordsReviewedToday: number;
   onStartSession: () => void;
   onLogout?: () => void;
 }
 
-export function Dashboard({ wordsReviewedToday, onStartSession, onLogout }: DashboardProps) {
+export function Dashboard({
+  wordsReviewedToday,
+  onStartSession,
+  onLogout,
+}: DashboardProps) {
   return (
     <div className="dashboard-page">
       <div className="dashboard-container">
@@ -22,20 +26,14 @@ export function Dashboard({ wordsReviewedToday, onStartSession, onLogout }: Dash
             <p className="stats-value">{wordsReviewedToday}</p>
           </div>
 
-          <button
-            onClick={onStartSession}
-            className="start-session-btn"
-          >
+          <button onClick={onStartSession} className="start-session-btn">
             Start Study Session
           </button>
         </div>
 
         {/* Logout */}
         {onLogout && (
-          <button
-            onClick={onLogout}
-            className="logout-btn"
-          >
+          <button onClick={onLogout} className="logout-btn">
             Log out
           </button>
         )}
