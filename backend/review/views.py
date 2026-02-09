@@ -157,8 +157,8 @@ class ReviewAnswerView(APIView):
         else:
             user_word.wrong_times += 1
             user_word.ease_factor -= 1
-            if user_word.ease_factor < 1:
-                user_word.ease_factor = 1
+            if user_word.ease_factor < 0:
+                user_word.ease_factor = 0
             next_review_time = now + timezone.timedelta(days=1)
 
         post_ease_factor = user_word.ease_factor
@@ -207,7 +207,9 @@ class ReviewEndView(APIView):
         try:
             session = ReviewSession.objects.get(id=session_id, user=user)
         except ReviewSession.DoesNotExist:
-            return Response(status=404)
+            return Response(
+                {"detail": "session not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         items = ReviewItem.objects.filter(session=session)
         total_cnt = items.count()
