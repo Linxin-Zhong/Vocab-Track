@@ -1,5 +1,5 @@
-from django.db import transaction
-from django.db.models import Q
+from django.db import transaction, IntegrityError
+from django.db.models import Q, F
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -36,35 +36,49 @@ class ReviewStartView(APIView):
             return Response({"detail": "book not found"}, status=404)
 
         # verify book has words
-        book_word = BookWord.objects.filter(book=book)
-        if not book_word.exists():
+        book_word = list(BookWord.objects.filter(book=book))
+        if not book_word:
             return Response({"detail": "book has no words"}, status=200)
 
+        # create UserWord entries for all BookWords in the book if not exist
         with transaction.atomic():
-            for bw in book_word:
-                UserWord.objects.get_or_create(
+            existing_book_word_ids = set(
+                UserWord.objects.filter(
+                    user=user,
+                    book_word__book=book,
+                ).values_list("book_word_id", flat=True)
+            )
+
+            new_user_words = [
+                UserWord(
                     user=user,
                     book_word=bw,
-                    defaults={
-                        # TODO ease_factor design
-                        "ease_factor": 0,
-                        "correct_times": 0,
-                        "wrong_times": 0,
-                        "last_time": None,
-                        "next_review_time": None,  # None means never reviewed, should be prioritized in review
-                    },
+                    # TODO ease_factor design
+                    ease_factor=0,
+                    correct_times=0,
+                    wrong_times=0,
+                    last_time=None,
+                    # None means never reviewed, should be prioritized in review
+                    next_review_time=None,
                 )
+                for bw in book_word
+                if bw.id not in existing_book_word_ids
+            ]
+            if new_user_words:
+                UserWord.objects.bulk_create(new_user_words, ignore_conflicts=True)
+
         # filter user words that are due for review
         user_word = (
             UserWord.objects.filter(
                 user=user,
                 book_word__book=book,
             )
+            .select_related("book_word__word")
             .filter(
                 Q(next_review_time__lte=timezone.now())
                 | Q(next_review_time__isnull=True)
             )
-            .order_by("next_review_time", "id")[:limit]
+            .order_by(F("next_review_time").asc(nulls_first=True), "id")[:limit]
         )
 
         if not user_word.exists():
@@ -109,11 +123,28 @@ class ReviewAnswerView(APIView):
 
         try:
             session = ReviewSession.objects.get(id=session_id, user=user)
-            user_word = UserWord.objects.get(id=user_word_id, user=user)
-        except (ReviewSession.DoesNotExist, UserWord.DoesNotExist):
+        except ReviewSession.DoesNotExist:
             return Response(
-                {"detail": "session or user word not found"},
+                {"detail": "session not found"},
                 status=status.HTTP_404_NOT_FOUND,
+            )
+        try:
+            # Ensure the user word belongs to the same book as the review session.
+            user_word = UserWord.objects.get(
+                id=user_word_id,
+                user=user,
+                book_word__book=session.book,
+            )
+        except UserWord.DoesNotExist:
+            return Response(
+                {"detail": "user word not found for this session"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        # Prevent answering the same word multiple times in a single session.
+        if ReviewItem.objects.filter(session=session, user_word=user_word).exists():
+            return Response(
+                {"detail": "this word has already been answered in this session"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         now = timezone.now()
@@ -133,15 +164,22 @@ class ReviewAnswerView(APIView):
         post_ease_factor = user_word.ease_factor
         user_word.last_time = now
         user_word.next_review_time = next_review_time
-        user_word.save()
 
-        ReviewItem.objects.create(
-            session=session,
-            user_word=user_word,
-            is_correct=is_correct,
-            pre_ease_factor=pre_ease_factor,
-            post_ease_factor=post_ease_factor,
-        )
+        try:
+            with transaction.atomic():
+                user_word.save()
+                ReviewItem.objects.create(
+                    session=session,
+                    user_word=user_word,
+                    is_correct=is_correct,
+                    pre_ease_factor=pre_ease_factor,
+                    post_ease_factor=post_ease_factor,
+                )
+        except IntegrityError:
+            return Response(
+                {"detail": "this word has already been answered in this session"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response(
             {

@@ -90,3 +90,9 @@ class ReviewItem(models.Model):
 
     class Meta:
         db_table = "tbl_review_item"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["session", "user_word"],
+                name="uniq_review_item_session_user_word",
+            ),
+        ]

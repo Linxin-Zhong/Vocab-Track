@@ -1,18 +1,11 @@
 from rest_framework import serializers
-from .models import ReviewSession, ReviewItem, UserWord
 
 
 class ReviewStartSerializer(serializers.Serializer):
-    book_id = serializers.IntegerField()
+    book_id = serializers.IntegerField(min_value=1)
     limit = serializers.IntegerField(
-        default=5
+        default=5, min_value=1, max_value=100
     )  # limit the number of words to review in one session
-
-
-class ReviewWordSerializer(serializers.Serializer):
-    user_word_id = serializers.IntegerField()
-    word_text = serializers.CharField()
-    meaning = serializers.CharField()
 
 
 class ReviewAnswerSerializer(serializers.Serializer):

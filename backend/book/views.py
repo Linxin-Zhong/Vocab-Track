@@ -147,7 +147,7 @@ class BookWordViewSet(GenericViewSet):
             "failed": failed,
         }
 
-        status_code = 200 if created else 400
+        status_code = 201 if created else 400
         return Response(response_data, status=status_code)
 
     def update(self, request, pk=None, book_pk=None):
