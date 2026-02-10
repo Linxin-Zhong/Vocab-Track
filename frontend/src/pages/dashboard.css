@@ -1,0 +1,101 @@
+/* Page layout */
+.dashboard-page {
+  min-height: 100vh;
+  min-width: 60vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 1.5rem; /* px-6 */
+  padding-right: 1.5rem;
+}
+
+.dashboard-container {
+  max-width: 32rem; /* max-w-lg */
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* space-y-8 */
+}
+
+/* Header */
+.dashboard-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* space-y-2 */
+}
+
+.dashboard-title {
+  font-size: 1.875rem; /* text-3xl */
+  color: #171717; /* text-neutral-900 */
+  margin: 0;
+  font-weight: 400;
+}
+
+.dashboard-subtitle {
+  color: #737373; /* text-neutral-600 */
+  margin: 0;
+}
+
+/* Card */
+.stats-card {
+  background-color: #ffffff;
+  border-radius: 1rem; /* rounded-2xl */
+  padding: 1.5rem; /* p-8 */
+  border: 1px solid #e5e5e5; /* border-neutral-200 */
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* space-y-6 */
+}
+
+.stats-text {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem; /* space-y-1 */
+}
+
+.stats-label {
+  font-size: 0.875rem; /* text-sm */
+  color: #737373; /* text-neutral-600 */
+  margin: 0;
+}
+
+.stats-value {
+  font-size: 2.25rem; /* text-4xl */
+  color: #171717; /* text-neutral-900 */
+  margin: 0;
+}
+
+/* Buttons */
+.start-session-btn {
+  width: 100%;
+  padding: 1rem 1.5rem; /* py-4 px-6 */
+  background-color: #171717; /* bg-neutral-900 */
+  color: white;
+  border: none;
+  border-radius: 9999px; /* rounded-full */
+  font-size: 1.125rem; /* text-lg */
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.start-session-btn:hover {
+  background-color: #262626; /* hover:bg-neutral-800 */
+}
+
+/* Logout */
+.logout-btn {
+  width: 100%;
+  padding: 0.75rem 1.5rem; /* py-3 px-6 */
+  background: transparent;
+  border: none;
+  color: #737373; /* text-neutral-600 */
+  font-size: 1rem;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+.logout-btn:hover {
+  color: #171717; /* hover:text-neutral-900 */
+}

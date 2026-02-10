@@ -7,45 +7,85 @@ export const getAccessToken = () => accessToken;
 
 export type AuthResult =
   | { success: true; user: User }
-  | { success: false; errorType: 'NETWORK' | 'AUTH' | 'RATE_LIMIT' | 'VALIDATION' | 'CONFLICT' | 'UNKNOWN' };
+  | {
+      success: false;
+      errorType:
+        | "NETWORK"
+        | "AUTH"
+        | "RATE_LIMIT"
+        | "VALIDATION"
+        | "CONFLICT"
+        | "UNKNOWN";
+    };
 
-export async function login(email: string, password: string): Promise<AuthResult> {
+export async function login(
+  email: string,
+  password: string,
+): Promise<AuthResult> {
   try {
     const data = await apiRequest<AuthResponse>(ENDPOINTS.USER.LOGIN, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ email, password }),
     });
-    
+
     accessToken = data.token;
-    return { success: true, user: data.user};
+    return { success: true, user: data.user };
   } catch (error: any) {
-    if (!error.status) return { success: false, errorType: 'NETWORK' };
+    if (!error.status) return { success: false, errorType: "NETWORK" };
     switch (error.status) {
-      case 400: return { success: false, errorType: 'VALIDATION' };
-      case 401: return { success: false, errorType: 'AUTH' };
-      case 429: return { success: false, errorType: 'RATE_LIMIT' };
-      default: return { success: false, errorType: 'UNKNOWN' };
+      case 400:
+        return { success: false, errorType: "VALIDATION" };
+      case 401:
+        return { success: false, errorType: "AUTH" };
+      case 429:
+        return { success: false, errorType: "RATE_LIMIT" };
+      default:
+        return { success: false, errorType: "UNKNOWN" };
     }
   }
 }
 
-export async function register(email: string, password: string): Promise<AuthResult> {
+export async function register(
+  email: string,
+  password: string,
+): Promise<AuthResult> {
   try {
     const data = await apiRequest<AuthResponse>(ENDPOINTS.USER.REGISTER, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ email, password }),
     });
-    
-    accessToken = data.token;
-    return { success: true, user: data.user};
 
+    accessToken = data.token;
+    return { success: true, user: data.user };
   } catch (error: any) {
-    if (!error.status) return { success: false, errorType: 'NETWORK' };
+    if (!error.status) return { success: false, errorType: "NETWORK" };
     switch (error.status) {
-      case 400: return { success: false, errorType: 'VALIDATION' };
-      case 409: return { success: false, errorType: 'CONFLICT' };
-      case 429: return { success: false, errorType: 'RATE_LIMIT' };
-      default: return { success: false, errorType: 'UNKNOWN' };
+      case 400:
+        return { success: false, errorType: "VALIDATION" };
+      case 409:
+        return { success: false, errorType: "CONFLICT" };
+      case 429:
+        return { success: false, errorType: "RATE_LIMIT" };
+      default:
+        return { success: false, errorType: "UNKNOWN" };
+    }
+  }
+}
+
+export async function logout(): Promise<AuthResult> {
+  try {
+    await apiRequest<AuthResponse>(ENDPOINTS.USER.LOGOUT, {
+      method: "POST",
+    });
+    accessToken = null;
+    return { success: true, user: {} as User };
+  } catch (error: any) {
+    if (!error.status) return { success: false, errorType: "NETWORK" };
+    switch (error.status) {
+      case 401:
+        return { success: false, errorType: "AUTH" };
+      default:
+        return { success: false, errorType: "UNKNOWN" };
     }
   }
 }
