@@ -5,4 +5,8 @@ export const ENDPOINTS = {
     LOGIN: "/user/login/",
     LOGOUT: "/user/logout/",
   },
+  BOOK: {
+    BASE: "/book/",
+    WORDS: (bookId: number) => `/book/${bookId}/word/`,
+  },
 } as const;
