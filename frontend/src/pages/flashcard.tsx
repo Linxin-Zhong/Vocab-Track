@@ -4,11 +4,11 @@ import "./flashcard.css";
 
 type ViewMode = "question" | "answer";
 
-type FlashcardStudyProps = {
+type FlashcardProps = {
   onQuit: () => void;
 };
 
-export function FlashcardStudy({ onQuit }: FlashcardStudyProps) {
+export function Flashcard({ onQuit }: FlashcardProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("question");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

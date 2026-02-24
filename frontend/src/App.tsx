@@ -5,7 +5,7 @@ import { LoginPage } from "./pages/login_page";
 import { login, register, logout } from "./services/authService";
 import { Dashboard } from "./pages/dashboard";
 import { AuthError } from "./types/auth";
-import { FlashcardStudy } from "./pages/flashcard";
+import { Flashcard } from "./pages/flashcard";
 
 type Screen = "landing" | "signup" | "dashboard" | "flashcard";
 
@@ -98,7 +98,7 @@ export default function App() {
         />
       )}
       {currentScreen === "flashcard" && (
-        <FlashcardStudy onQuit={() => navigateTo("dashboard")} />
+        <Flashcard onQuit={() => navigateTo("dashboard")} />
       )}
     </div>
   );
