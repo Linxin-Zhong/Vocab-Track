@@ -29,7 +29,7 @@ npm run dev
 ## Testing
 The frontend uses Vitest with React Testing Library and jsdom for component tests (UI-level integration in jsdom).
 
-If Vitest not installed: 
+If Vitest not installed:
 ```bash
 npm install -D vitest
 ```
@@ -44,9 +44,17 @@ Run in watch mode (reruns on file changes):
 npm test
 ```
 
-Current tests live next to the components/pages in `frontend/src/pages/`:
-- `frontend/src/pages/starting_page.test.tsx`
-- `frontend/src/pages/login_page.test.tsx`
+Run specific test files:
+```bash
+npm run test:run -- src/services/bookService.test.ts src/pages/flashcard.test.tsx
+```
+
+Tests are colocated with source files under `frontend/src/`:
+- `src/pages/starting_page.test.tsx`
+- `src/pages/login_page.test.tsx`
+- `src/pages/flashcard.test.tsx`
+- `src/services/authService.test.ts`
+- `src/services/bookService.test.ts`
 
 ## CI
 Frontend tests run in GitHub Actions via the `Frontend Tests` workflow.

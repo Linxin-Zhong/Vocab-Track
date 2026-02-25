@@ -5,8 +5,9 @@ import { LoginPage } from "./pages/login_page";
 import { login, register, logout } from "./services/authService";
 import { Dashboard } from "./pages/dashboard";
 import { AuthError } from "./types/auth";
+import { Flashcard } from "./pages/flashcard";
 
-type Screen = "landing" | "signup" | "dashboard";
+type Screen = "landing" | "signup" | "dashboard" | "flashcard";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("landing");
@@ -91,10 +92,13 @@ export default function App() {
         <Dashboard
           wordsReviewedToday={0}
           onStartSession={() => {
-            console.log("start study button clicked");
+            navigateTo("flashcard");
           }}
           onLogout={handleLogout}
         />
+      )}
+      {currentScreen === "flashcard" && (
+        <Flashcard onQuit={() => navigateTo("dashboard")} />
       )}
     </div>
   );
