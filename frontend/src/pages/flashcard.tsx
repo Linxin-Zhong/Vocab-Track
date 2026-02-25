@@ -112,48 +112,46 @@ export function Flashcard({ onQuit }: FlashcardProps) {
           <p className="flashcard-progress">{cardCountLabel}</p>
 
           <section className="flashcard-card">
-            {!currentWord ? null : (
-              <>
-                <div className="flashcard-content">
-                  <h1 className="flashcard-word">{currentWord.word_text}</h1>
+            <>
+              <div className="flashcard-content">
+                <h1 className="flashcard-word">{currentWord.word_text}</h1>
 
-                  {viewMode === "answer" && (
-                    <div className="flashcard-answer-text">
-                      <p className="flashcard-meaning">{currentWord.meaning}</p>
-                      {currentWord.example ? (
-                        <p className="flashcard-example">
-                          "{currentWord.example}"
-                        </p>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
-
-                {viewMode === "question" ? (
-                  <button
-                    className="flashcard-primary-btn"
-                    onClick={() => setViewMode("answer")}
-                  >
-                    Show Answer
-                  </button>
-                ) : (
-                  <div className="flashcard-answer-actions">
-                    <button
-                      className="flashcard-secondary-btn"
-                      onClick={() => console.log("didnt_know", currentWord.id)}
-                    >
-                      I didn&apos;t know this
-                    </button>
-                    <button
-                      className="flashcard-primary-btn"
-                      onClick={() => console.log("knew", currentWord.id)}
-                    >
-                      I knew this
-                    </button>
+                {viewMode === "answer" && (
+                  <div className="flashcard-answer-text">
+                    <p className="flashcard-meaning">{currentWord.meaning}</p>
+                    {currentWord.example ? (
+                      <p className="flashcard-example">
+                        "{currentWord.example}"
+                      </p>
+                    ) : null}
                   </div>
                 )}
-              </>
-            )}
+              </div>
+
+              {viewMode === "question" ? (
+                <button
+                  className="flashcard-primary-btn"
+                  onClick={() => setViewMode("answer")}
+                >
+                  Show Answer
+                </button>
+              ) : (
+                <div className="flashcard-answer-actions">
+                  <button
+                    className="flashcard-secondary-btn"
+                    onClick={() => console.log("didnt_know", currentWord.id)}
+                  >
+                    I didn&apos;t know this
+                  </button>
+                  <button
+                    className="flashcard-primary-btn"
+                    onClick={() => console.log("knew", currentWord.id)}
+                  >
+                    I knew this
+                  </button>
+                </div>
+              )}
+            </>
           </section>
 
           <button className="flashcard-quit" onClick={onQuit}>
