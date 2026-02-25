@@ -56,7 +56,7 @@ export function Flashcard({ onQuit }: FlashcardProps) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [getBooks, getWordsByBookId]);
 
   const cardCountLabel = useMemo(() => {
     if (!words.length) return "Card 0 of 0";
