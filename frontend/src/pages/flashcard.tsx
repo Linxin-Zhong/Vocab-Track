@@ -32,7 +32,12 @@ export function Flashcard({ onQuit }: FlashcardProps) {
           return;
         }
 
-        // keep your original selection logic
+        // Book selection policy:
+        // - Prefer a non-default book if any exist.
+        // - If multiple non-default books exist, we intentionally use the first one
+        //   in the `books` array, relying on the API/backend to provide books in
+        //   a deterministic, user-meaningful order (e.g., user preference or recency).
+        // - If no non-default books exist, fall back to the first (default) book.
         const selectedBook = books.find((book) => !book.is_default) ?? books[0];
         const fetchedWords = await getWordsByBookId(selectedBook.id);
 
