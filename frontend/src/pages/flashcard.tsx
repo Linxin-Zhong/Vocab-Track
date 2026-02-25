@@ -109,9 +109,7 @@ export function Flashcard({ onQuit }: FlashcardProps) {
       <main className="flashcard-page">
         <div className="flashcard-frame">
           <div className="flashcard-container">
-            <p className="flashcard-status">
-              {isSessionComplete ? "Review session complete" : "No words to review"}
-            </p>
+            <p className="flashcard-status">No words to review</p>
             <button className="flashcard-quit" onClick={onQuit}>
               Quit session
             </button>

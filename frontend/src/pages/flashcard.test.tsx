@@ -173,7 +173,6 @@ describe("Flashcard", () => {
     await user.click(screen.getByRole("button", { name: /show answer/i }));
     await user.click(screen.getByRole("button", { name: /i didn't know this/i }));
 
-    expect(await screen.findByText(/review session complete/i)).toBeInTheDocument();
     await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
   });
 });
