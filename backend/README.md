@@ -25,7 +25,7 @@ source .venv/bin/activate
 ```
 If with Windows, run this instead:
 ```bash
-source .venv/Scripts/activate
+.venv/Scripts/activate
 ```
 
 3. Install Python dependencies:

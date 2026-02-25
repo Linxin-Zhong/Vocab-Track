@@ -115,4 +115,64 @@ describe("Flashcard", () => {
 
     expect(onQuit).toHaveBeenCalledTimes(1);
   });
+
+  it("moves to the next card and resets to question view after marking known", async () => {
+    const user = userEvent.setup();
+    mockGetBooks.mockResolvedValueOnce([
+      { id: 6, book_name: "Deck", is_default: false },
+    ]);
+    mockGetWordsByBookId.mockResolvedValueOnce([
+      {
+        id: 21,
+        word_text: "lucid",
+        meaning: "clear and easy to understand",
+        difficulty: 1,
+      },
+      {
+        id: 22,
+        word_text: "zeal",
+        meaning: "great energy",
+        difficulty: 2,
+      },
+    ]);
+
+    render(<Flashcard onQuit={vi.fn()} />);
+
+    await screen.findByRole("heading", { name: "lucid" });
+    await user.click(screen.getByRole("button", { name: /show answer/i }));
+    expect(
+      screen.getByRole("button", { name: /i knew this/i }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /i knew this/i }));
+
+    expect(await screen.findByRole("heading", { name: "zeal" })).toBeInTheDocument();
+    expect(screen.getByText(/card 2 of 2/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /show answer/i })).toBeInTheDocument();
+    expect(screen.queryByText(/great energy/i)).not.toBeInTheDocument();
+  });
+
+  it("completes the session and calls onQuit after final card", async () => {
+    const onQuit = vi.fn();
+    const user = userEvent.setup();
+    mockGetBooks.mockResolvedValueOnce([
+      { id: 7, book_name: "Deck", is_default: false },
+    ]);
+    mockGetWordsByBookId.mockResolvedValueOnce([
+      {
+        id: 31,
+        word_text: "abate",
+        meaning: "to lessen",
+        difficulty: 1,
+      },
+    ]);
+
+    render(<Flashcard onQuit={onQuit} />);
+
+    await screen.findByRole("heading", { name: "abate" });
+    await user.click(screen.getByRole("button", { name: /show answer/i }));
+    await user.click(screen.getByRole("button", { name: /i didn't know this/i }));
+
+    await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
+  });
 });
