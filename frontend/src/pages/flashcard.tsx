@@ -13,9 +13,16 @@ export function Flashcard({ onQuit }: FlashcardProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [words, setWords] = useState<Word[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  const currentIndex = 0;
   const currentWord = words[currentIndex];
+  const isSessionComplete = words.length > 0 && currentIndex >= words.length;
+
+  useEffect(() => {
+    if (isSessionComplete) {
+      onQuit();
+    }
+  }, [isSessionComplete, onQuit]);
 
   useEffect(() => {
     let isMounted = true;
@@ -43,6 +50,7 @@ export function Flashcard({ onQuit }: FlashcardProps) {
 
         if (isMounted) {
           setWords(fetchedWords);
+          setCurrentIndex(0);
           setViewMode("question");
         }
       } catch {
@@ -60,8 +68,14 @@ export function Flashcard({ onQuit }: FlashcardProps) {
 
   const cardCountLabel = useMemo(() => {
     if (!words.length) return "Card 0 of 0";
-    return `Card 1 of ${words.length}`;
-  }, [words.length]);
+    if (isSessionComplete) return `Card ${words.length} of ${words.length}`;
+    return `Card ${currentIndex + 1} of ${words.length}`;
+  }, [words.length, currentIndex, isSessionComplete]);
+
+  const goToNextCard = () => {
+    setCurrentIndex((prev) => prev + 1);
+    setViewMode("question");
+  };
 
   if (loading) {
     return (
@@ -95,7 +109,9 @@ export function Flashcard({ onQuit }: FlashcardProps) {
       <main className="flashcard-page">
         <div className="flashcard-frame">
           <div className="flashcard-container">
-            <p className="flashcard-status">No words to review</p>
+            <p className="flashcard-status">
+              {isSessionComplete ? "Review session complete" : "No words to review"}
+            </p>
             <button className="flashcard-quit" onClick={onQuit}>
               Quit session
             </button>
@@ -139,13 +155,19 @@ export function Flashcard({ onQuit }: FlashcardProps) {
                 <div className="flashcard-answer-actions">
                   <button
                     className="flashcard-secondary-btn"
-                    onClick={() => console.log("didnt_know", currentWord.id)}
+                    onClick={() => {
+                      console.log("didnt_know", currentWord.id);
+                      goToNextCard();
+                    }}
                   >
                     I didn&apos;t know this
                   </button>
                   <button
                     className="flashcard-primary-btn"
-                    onClick={() => console.log("knew", currentWord.id)}
+                    onClick={() => {
+                      console.log("knew", currentWord.id);
+                      goToNextCard();
+                    }}
                   >
                     I knew this
                   </button>
