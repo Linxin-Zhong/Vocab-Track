@@ -23,9 +23,9 @@ If with MacOS system, run this command:
 ```bash
 source .venv/bin/activate
 ```
-If with Windows, run this instead:
+If with Windows, run this in git bash instead:
 ```bash
-.venv/Scripts/activate
+source .venv/Scripts/activate
 ```
 
 3. Install Python dependencies:
