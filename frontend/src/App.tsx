@@ -6,14 +6,28 @@ import { login, register, logout } from "./services/authService";
 import { Dashboard } from "./pages/dashboard";
 import { AuthError } from "./types/auth";
 import { Flashcard } from "./pages/flashcard";
+import { SessionSummary } from "./pages/session_summary";
 
-type Screen = "landing" | "signup" | "dashboard" | "flashcard";
+type Screen = "landing" | "signup" | "dashboard" | "flashcard" | "summary";
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("landing");
+  const [sessionStats, setSessionStats] = useState({ correct: 0, total: 0 });
+  const [totalReviewed, setTotalReviewed] = useState(0);
 
   const navigateTo = (screen: Screen) => {
     setCurrentScreen(screen);
+  };
+
+  const handleFlashcardQuit = (stats?: { correct: number; total: number }) => {
+    if (stats && stats.total > 0) {
+      console.log("stat total:", stats.total);
+      setSessionStats(stats);
+      setTotalReviewed((prev) => prev + stats.total);
+      navigateTo("summary");
+    } else {
+      navigateTo("dashboard");
+    }
   };
 
   const handleLogin = async (email: string, password: string) => {
@@ -90,7 +104,7 @@ export default function App() {
       )}
       {currentScreen === "dashboard" && (
         <Dashboard
-          wordsReviewedToday={0}
+          wordsReviewedToday={totalReviewed}
           onStartSession={() => {
             navigateTo("flashcard");
           }}
@@ -98,7 +112,13 @@ export default function App() {
         />
       )}
       {currentScreen === "flashcard" && (
-        <Flashcard onQuit={() => navigateTo("dashboard")} />
+        <Flashcard onQuit={handleFlashcardQuit} />
+      )}
+      {currentScreen === "summary" && (
+        <SessionSummary
+          stats={sessionStats}
+          onReturnToDashboard={() => navigateTo("dashboard")}
+        />
       )}
     </div>
   );
