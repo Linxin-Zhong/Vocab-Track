@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getBooks, getWordsByBookId, type Word } from "../services/bookService";
 import "./flashcard.css";
 
 type ViewMode = "question" | "answer";
 
 type FlashcardProps = {
-  onQuit: () => void;
+  onQuit: (stats?: { correct: number; total: number }) => void;
 };
 
 export function Flashcard({ onQuit }: FlashcardProps) {
@@ -15,12 +15,15 @@ export function Flashcard({ onQuit }: FlashcardProps) {
   const [words, setWords] = useState<Word[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  const correctCount = useRef(0);
+  const viewedCount = useRef(0);
+
   const currentWord = words[currentIndex];
   const isSessionComplete = words.length > 0 && currentIndex >= words.length;
 
   useEffect(() => {
     if (isSessionComplete) {
-      onQuit();
+      onQuit({ correct: correctCount.current, total: viewedCount.current });
     }
   }, [isSessionComplete, onQuit]);
 
@@ -95,7 +98,10 @@ export function Flashcard({ onQuit }: FlashcardProps) {
         <div className="flashcard-frame">
           <div className="flashcard-container">
             <p className="flashcard-error">{error}</p>
-            <button className="flashcard-quit" onClick={onQuit}>
+            <button
+              className="flashcard-quit"
+              onClick={() => onQuit({ correct: correctCount.current, total: viewedCount.current })}
+            >
               Quit session
             </button>
           </div>
@@ -110,7 +116,10 @@ export function Flashcard({ onQuit }: FlashcardProps) {
         <div className="flashcard-frame">
           <div className="flashcard-container">
             <p className="flashcard-status">No words to review</p>
-            <button className="flashcard-quit" onClick={onQuit}>
+            <button
+              className="flashcard-quit"
+              onClick={() => onQuit({ correct: correctCount.current, total: viewedCount.current })}
+            >
               Quit session
             </button>
           </div>
@@ -154,7 +163,7 @@ export function Flashcard({ onQuit }: FlashcardProps) {
                   <button
                     className="flashcard-secondary-btn"
                     onClick={() => {
-                      console.log("didnt_know", currentWord.id);
+                      viewedCount.current += 1;
                       goToNextCard();
                     }}
                   >
@@ -163,7 +172,8 @@ export function Flashcard({ onQuit }: FlashcardProps) {
                   <button
                     className="flashcard-primary-btn"
                     onClick={() => {
-                      console.log("knew", currentWord.id);
+                      viewedCount.current += 1;
+                      correctCount.current += 1;
                       goToNextCard();
                     }}
                   >
@@ -174,7 +184,10 @@ export function Flashcard({ onQuit }: FlashcardProps) {
             </>
           </section>
 
-          <button className="flashcard-quit" onClick={onQuit}>
+          <button
+            className="flashcard-quit"
+            onClick={() => onQuit({ correct: correctCount.current, total: viewedCount.current })}
+          >
             Quit session
           </button>
         </div>

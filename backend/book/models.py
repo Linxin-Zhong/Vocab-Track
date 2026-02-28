@@ -7,7 +7,8 @@ class Book(models.Model):
     user = models.ForeignKey(
         "user.User",
         on_delete=models.CASCADE,
-        null=True,  # Allow null for default books
+        null=True,  # Allow null value in db for default books
+        blank=True,  # Allow blank field for default books
         db_column="user_id",
     )
     create_time = models.DateTimeField(auto_now_add=True, db_column="create_time")
