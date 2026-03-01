@@ -168,12 +168,12 @@ export default function App() {
     if (res.success) {
       // TODO: set up user & implement dashboard UI
       const userEmail = res.user.email;
-      // Resume unfinished review session after login so users can continue seamlessly.
-      const restoredSession = readActiveSessionFromStorage(userEmail);
+      // NOTE: Auto-resume of unfinished review sessions is disabled until
+      // we can safely restore full progress (current index, answered words, counts)
+      // from the backend to avoid resubmitting already-answered cards.
       setCurrentUserEmail(userEmail);
       syncTodayReviewedForUser(userEmail);
-      applyActiveSession(restoredSession);
-      navigateTo(restoredSession ? "flashcard" : "dashboard");
+      navigateTo("dashboard");
       console.log("login succeeded.");
     } else {
       // TODO: display error messages.
