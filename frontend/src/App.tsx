@@ -274,8 +274,10 @@ export default function App() {
     } catch (error) {
       const detail = error instanceof Error ? error.message : "";
       if (/no words to review|book has no words/i.test(detail)) {
-        // Fallback mode: allow users to keep reviewing even if no due words.
-        // We intentionally clear activeSession so flashcard page uses local/non-session flow.
+        // Practice mode fallback:
+        // - Triggered when all words due today are already reviewed (or book has no due words).
+        // - No backend review session is created in this flow.
+        // - Flashcard page runs in local/non-session mode for continuous practice only.
         clearActiveSession(currentUserEmail);
         setCurrentBookId(selectedBookId);
         navigateTo("flashcard");

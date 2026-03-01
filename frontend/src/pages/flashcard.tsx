@@ -26,6 +26,23 @@ type StudyWord = Pick<Word, "word_text" | "meaning" | "example"> & {
   user_word_id?: number;
 };
 
+const LOCAL_PRACTICE_LIMIT = 5;
+
+function pickLocalPracticeWords(words: Word[]): StudyWord[] {
+  // Practice mode helper: backend session is absent, so keep each local drill short.
+  if (words.length <= LOCAL_PRACTICE_LIMIT) return words;
+
+  const shuffled = [...words];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = shuffled[i];
+    shuffled[i] = shuffled[j];
+    shuffled[j] = temp;
+  }
+
+  return shuffled.slice(0, LOCAL_PRACTICE_LIMIT);
+}
+
 export function Flashcard({
   onQuit,
   sessionId,
@@ -65,6 +82,9 @@ export function Flashcard({
 
   const finalizeSession = useCallback(async () => {
     if (sessionId == null) {
+      // Practice mode (no backend session created):
+      // - skip `/review/end/`
+      // - use local counts only for summary
       onQuit(buildLocalSessionStats());
       return;
     }
@@ -179,7 +199,9 @@ export function Flashcard({
         const fetchedWords = await getWordsByBookId(targetBookId);
 
         if (isMounted) {
-          setWords(fetchedWords);
+          // Practice mode path: this branch runs only when `sessionId/sessionWords`
+          // are absent, so no `/review/answer/` or `/review/end/` lifecycle exists.
+          setWords(pickLocalPracticeWords(fetchedWords));
           setCurrentIndex(0);
           setViewMode("question");
         }
@@ -210,7 +232,7 @@ export function Flashcard({
       currentWord &&
       currentWord.user_word_id != null
     ) {
-      // Persist each answer to backend so session stats remain authoritative.
+      // Backend session mode only: persist answers to keep scheduling/statistics server-authoritative.
       setAnswerLoading(true);
       try {
         await answerReviewWord(sessionId, currentWord.user_word_id, isCorrect);
