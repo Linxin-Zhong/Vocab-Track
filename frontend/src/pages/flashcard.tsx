@@ -81,6 +81,9 @@ export function Flashcard({
   }, []);
 
   const finalizeSession = useCallback(async () => {
+    // Avoid ending a backend session while an answer is still being persisted.
+    if (answerLoading) return;
+
     if (sessionId == null) {
       // Practice mode (no backend session created):
       // - skip `/review/end/`
@@ -122,7 +125,7 @@ export function Flashcard({
     } finally {
       setEndLoading(false);
     }
-  }, [sessionId, onQuit, buildLocalSessionStats]);
+  }, [answerLoading, sessionId, onQuit, buildLocalSessionStats]);
 
   useEffect(() => {
     // Auto-end once the user has answered all words in the current session.
@@ -271,7 +274,7 @@ export function Flashcard({
             <button
               className="flashcard-quit"
               onClick={() => void finalizeSession()}
-              disabled={endLoading}
+              disabled={answerLoading || endLoading}
             >
               {endLoading ? "Ending..." : "Quit session"}
             </button>
@@ -290,7 +293,7 @@ export function Flashcard({
             <button
               className="flashcard-quit"
               onClick={() => void finalizeSession()}
-              disabled={endLoading}
+              disabled={answerLoading || endLoading}
             >
               {endLoading ? "Ending..." : "Quit session"}
             </button>
@@ -355,7 +358,7 @@ export function Flashcard({
           <button
             className="flashcard-quit"
             onClick={() => void finalizeSession()}
-            disabled={endLoading}
+            disabled={answerLoading || endLoading}
           >
             {endLoading ? "Ending..." : "Quit session"}
           </button>
