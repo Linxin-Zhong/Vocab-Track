@@ -47,23 +47,6 @@ function getActiveSessionStorageKey(userEmail: string): string {
   return `${ACTIVE_SESSION_STORAGE_PREFIX}:${userEmail.toLowerCase()}`;
 }
 
-function isValidActiveSession(data: unknown): data is ActiveSession {
-  if (!data || typeof data !== "object") return false;
-  const session = data as Partial<ActiveSession>;
-  if (typeof session.session_id !== "number") return false;
-  if (typeof session.book_id !== "number") return false;
-  if (!Array.isArray(session.words)) return false;
-
-  return session.words.every(
-    (word) =>
-      word &&
-      typeof word === "object" &&
-      typeof word.user_word_id === "number" &&
-      typeof word.word_text === "string" &&
-      typeof word.meaning === "string",
-  );
-}
-
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("landing");
   const [sessionStats, setSessionStats] = useState<SessionStats>({
