@@ -52,9 +52,16 @@ export type EndReviewSessionResponse = {
 
 function normalizeMeaning(word: StartReviewSessionWordApi): string {
   // Docs/examples vary between `meaning` and `meanings`; normalize to one string.
-  if (word.meaning && word.meaning.trim()) return word.meaning;
+  if (word.meaning && word.meaning.trim()) {
+    return word.meaning.trim();
+  }
   if (Array.isArray(word.meanings) && word.meanings.length > 0) {
-    return word.meanings.join("; ");
+    const normalizedMeanings = word.meanings
+      .map((m) => (typeof m === "string" ? m.trim() : ""))
+      .filter((m) => m.length > 0);
+    if (normalizedMeanings.length > 0) {
+      return normalizedMeanings.join("; ");
+    }
   }
   return "";
 }
