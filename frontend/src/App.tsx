@@ -168,9 +168,12 @@ export default function App() {
     if (res.success) {
       // TODO: set up user & implement dashboard UI
       const userEmail = res.user.email;
-      // NOTE: Auto-resume of unfinished review sessions is disabled until
-      // we can safely restore full progress (current index, answered words, counts)
-      // from the backend to avoid resubmitting already-answered cards.
+      // NOTE: Backend-driven auto-resume of unfinished review sessions on login
+      // is disabled until we can safely restore full progress (current index,
+      // answered words, counts) from the backend to avoid resubmitting
+      // already-answered cards. We still persist active sessions in localStorage
+      // and may restore them in limited flows (e.g. registration) as a temporary
+      // UX aid until full resume support is implemented.
       setCurrentUserEmail(userEmail);
       syncTodayReviewedForUser(userEmail);
       navigateTo("dashboard");
