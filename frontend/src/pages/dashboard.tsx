@@ -14,6 +14,13 @@ export function Dashboard({
   isStartingSession = false,
   startSessionError = null,
 }: DashboardProps) {
+  const handleStartSessionClick = () => {
+    void Promise.resolve(onStartSession()).catch((error) => {
+      // Parent usually handles errors via state, but keep this catch to avoid unhandled rejections.
+      console.error("Start session failed:", error);
+    });
+  };
+
   return (
     <div className="dashboard-page">
       <div className="dashboard-container">
@@ -31,7 +38,7 @@ export function Dashboard({
           </div>
 
           <button
-            onClick={onStartSession}
+            onClick={handleStartSessionClick}
             className="start-session-btn"
             disabled={isStartingSession}
           >
