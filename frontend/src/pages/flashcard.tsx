@@ -159,7 +159,7 @@ export function Flashcard({
         return rawSessionWords;
       }
     },
-    [bookId],
+    [bookId, getBooks, getWordsByBookId],
   );
 
   useEffect(() => {
