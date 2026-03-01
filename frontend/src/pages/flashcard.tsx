@@ -64,7 +64,7 @@ export function Flashcard({
   }, []);
 
   const finalizeSession = useCallback(async () => {
-    if (!sessionId) {
+    if (sessionId == null) {
       onQuit(buildLocalSessionStats());
       return;
     }
