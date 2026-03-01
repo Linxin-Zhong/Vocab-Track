@@ -149,7 +149,6 @@ export default function App() {
     clearActiveSession();
 
     if (stats && stats.total > 0) {
-      console.log("stat total:", stats.total);
       setSessionStats(stats);
       setTotalReviewed((prev) => {
         const next = prev + stats.total;
