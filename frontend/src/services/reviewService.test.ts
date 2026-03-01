@@ -60,6 +60,22 @@ describe("reviewService", () => {
     );
   });
 
+  it("throws a fallback error when backend returns null", async () => {
+    mockApiRequest.mockResolvedValueOnce(null);
+
+    await expect(startReviewSession(10, 5)).rejects.toThrow(
+      /failed to start review session/i,
+    );
+  });
+
+  it("throws a fallback error when backend returns a non-object JSON type", async () => {
+    mockApiRequest.mockResolvedValueOnce("unexpected response");
+
+    await expect(startReviewSession(10, 5)).rejects.toThrow(
+      /failed to start review session/i,
+    );
+  });
+
   it("submits a review answer", async () => {
     mockApiRequest.mockResolvedValueOnce({
       user_word_id: 8,

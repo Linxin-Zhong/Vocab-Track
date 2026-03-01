@@ -50,6 +50,26 @@ export type EndReviewSessionResponse = {
   accuracy: number;
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isStartReviewSessionApiResponse(
+  value: unknown,
+): value is StartReviewSessionApiResponse {
+  return (
+    isRecord(value) &&
+    typeof value.session_id === "number" &&
+    Array.isArray(value.words)
+  );
+}
+
+function isStartReviewSessionEmptyResponse(
+  value: unknown,
+): value is StartReviewSessionEmptyResponse {
+  return isRecord(value) && typeof value.detail === "string";
+}
+
 function normalizeMeaning(word: StartReviewSessionWordApi): string {
   // Docs/examples vary between `meaning` and `meanings`; normalize to one string.
   if (word.meaning && word.meaning.trim()) {
@@ -75,22 +95,16 @@ export async function startReviewSession(
     limit,
   };
 
-  const data = await apiRequest<
-    StartReviewSessionApiResponse | StartReviewSessionEmptyResponse
-  >(
-    ENDPOINTS.REVIEW.START,
-    {
-      method: "POST",
-      body: JSON.stringify(payload),
-    },
-  );
+  const data = await apiRequest<unknown>(ENDPOINTS.REVIEW.START, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 
   // Backend may return 200 with a `detail` payload (e.g., no words due).
-  if (!("session_id" in data) || typeof data.session_id !== "number") {
-    const message =
-      "detail" in data && typeof data.detail === "string"
-        ? data.detail
-        : "Failed to start review session";
+  if (!isStartReviewSessionApiResponse(data)) {
+    const message = isStartReviewSessionEmptyResponse(data)
+      ? data.detail
+      : "Failed to start review session";
     throw new Error(message);
   }
 
