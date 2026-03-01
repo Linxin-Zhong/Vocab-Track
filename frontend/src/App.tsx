@@ -106,25 +106,6 @@ export default function App() {
     localStorage.setItem(storageKey, JSON.stringify(session));
   };
 
-  const readActiveSessionFromStorage = (
-    userEmail: string,
-  ): ActiveSession | null => {
-    const storageKey = getActiveSessionStorageKey(userEmail);
-    const savedSession = localStorage.getItem(storageKey);
-    if (!savedSession) return null;
-    try {
-      const parsed = JSON.parse(savedSession);
-      if (!isValidActiveSession(parsed)) {
-        localStorage.removeItem(storageKey);
-        return null;
-      }
-      return parsed;
-    } catch {
-      localStorage.removeItem(storageKey);
-      return null;
-    }
-  };
-
   const clearActiveSession = (userEmail: string | null = currentUserEmail) => {
     setActiveSession(null);
     setCurrentBookId(null);
