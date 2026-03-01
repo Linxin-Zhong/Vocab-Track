@@ -31,6 +31,33 @@ describe("Dashboard", () => {
     expect(onStartSession).toHaveBeenCalledTimes(1);
   });
 
+  it("disables start button while session request is in-flight", () => {
+    render(
+      <Dashboard
+        wordsReviewedToday={0}
+        onStartSession={() => {}}
+        isStartingSession
+      />
+    );
+
+    const button = screen.getByRole("button", { name: /starting/i });
+    expect(button).toBeDisabled();
+  });
+
+  it("renders session start error when provided", () => {
+    render(
+      <Dashboard
+        wordsReviewedToday={0}
+        onStartSession={() => {}}
+        startSessionError="Failed to start study session."
+      />
+    );
+
+    expect(
+      screen.getByText(/failed to start study session/i),
+    ).toBeInTheDocument();
+  });
+
   it("renders log out button when onLogout prop is provided", () => {
     const onLogout = vi.fn();
     render(

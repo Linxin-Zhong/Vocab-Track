@@ -1,14 +1,18 @@
 import "./dashboard.css";
 interface DashboardProps {
   wordsReviewedToday: number;
-  onStartSession: () => void;
+  onStartSession: () => Promise<void> | void;
   onLogout?: () => void;
+  isStartingSession?: boolean;
+  startSessionError?: string | null;
 }
 
 export function Dashboard({
   wordsReviewedToday,
   onStartSession,
   onLogout,
+  isStartingSession = false,
+  startSessionError = null,
 }: DashboardProps) {
   return (
     <div className="dashboard-page">
@@ -26,9 +30,16 @@ export function Dashboard({
             <p className="stats-value">{wordsReviewedToday}</p>
           </div>
 
-          <button onClick={onStartSession} className="start-session-btn">
-            Start Study Session
+          <button
+            onClick={onStartSession}
+            className="start-session-btn"
+            disabled={isStartingSession}
+          >
+            {isStartingSession ? "Starting..." : "Start Study Session"}
           </button>
+          {startSessionError ? (
+            <p className="dashboard-error">{startSessionError}</p>
+          ) : null}
         </div>
 
         {/* Logout */}

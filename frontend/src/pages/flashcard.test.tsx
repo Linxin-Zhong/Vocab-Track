@@ -3,14 +3,20 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Flashcard } from "./flashcard";
 import { getBooks, getWordsByBookId } from "../services/bookService";
+import { endReviewSession } from "../services/reviewService";
 
 vi.mock("../services/bookService", () => ({
   getBooks: vi.fn(),
   getWordsByBookId: vi.fn(),
 }));
+vi.mock("../services/reviewService", () => ({
+  answerReviewWord: vi.fn(),
+  endReviewSession: vi.fn(),
+}));
 
 const mockGetBooks = vi.mocked(getBooks);
 const mockGetWordsByBookId = vi.mocked(getWordsByBookId);
+const mockEndReviewSession = vi.mocked(endReviewSession);
 
 describe("Flashcard", () => {
   beforeEach(() => {
@@ -172,6 +178,29 @@ describe("Flashcard", () => {
     await screen.findByRole("heading", { name: "abate" });
     await user.click(screen.getByRole("button", { name: /show answer/i }));
     await user.click(screen.getByRole("button", { name: /i didn't know this/i }));
+
+    await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
+  });
+
+  it("falls back to local quit when ending a backend session fails", async () => {
+    const onQuit = vi.fn();
+    const user = userEvent.setup();
+    mockGetWordsByBookId.mockResolvedValueOnce([
+      { id: 10, word_text: "abate", meaning: "to lessen", difficulty: 2 },
+    ]);
+    mockEndReviewSession.mockRejectedValueOnce(new Error("boom"));
+
+    render(
+      <Flashcard
+        onQuit={onQuit}
+        sessionId={12}
+        bookId={2}
+        sessionWords={[{ user_word_id: 10, word_text: "abate", meaning: "to lessen" }]}
+      />,
+    );
+
+    await screen.findByRole("heading", { name: /abate/i });
+    await user.click(screen.getByRole("button", { name: /quit session/i }));
 
     await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
   });

@@ -84,6 +84,18 @@
   background-color: #262626; /* hover:bg-neutral-800 */
 }
 
+.start-session-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.dashboard-error {
+  margin: 0;
+  color: #ef4444;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
 /* Logout */
 .logout-btn {
   width: 100%;
