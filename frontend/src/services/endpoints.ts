@@ -9,4 +9,10 @@ export const ENDPOINTS = {
     BASE: "/book/",
     WORDS: (bookId: number) => `/book/${bookId}/word/`,
   },
+  REVIEW: {
+    BASE: "/review/",
+    START: "/review/start/",
+    ANSWER: "/review/answer/",
+    END: "/review/end/",
+  },
 } as const;

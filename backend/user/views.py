@@ -45,8 +45,12 @@ class UserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 class LoginView(APIView):
 
     def post(self, request, *args, **kwargs):
-        serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        serializer = LoginSerializer(data=request.data, context={"request": request})
+        if not serializer.is_valid():
+            return Response(
+                {"message": serializer.errors["non_field_errors"][0]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         user = serializer.validated_data["user"]
         token, _ = Token.objects.get_or_create(user=user)
         user_data = UserSerializer(user).data

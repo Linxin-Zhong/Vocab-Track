@@ -110,6 +110,13 @@
   background: #262626; /* hover:bg-neutral-800 */
 }
 
+.flashcard-primary-btn:disabled,
+.flashcard-secondary-btn:disabled,
+.flashcard-quit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .flashcard-secondary-btn {
   background: white; /* bg-white */
   border: 1px solid #e5e5e5; /* border-neutral-200 */
