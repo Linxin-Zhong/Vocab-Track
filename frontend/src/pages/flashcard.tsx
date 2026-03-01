@@ -205,7 +205,11 @@ export function Flashcard({
   const handleSubmitAnswer = async (isCorrect: boolean) => {
     if (answerLoading || endLoading) return;
 
-    if (sessionId && currentWord?.user_word_id) {
+    if (
+      sessionId != null &&
+      currentWord &&
+      currentWord.user_word_id != null
+    ) {
       // Persist each answer to backend so session stats remain authoritative.
       setAnswerLoading(true);
       setError(null);
