@@ -287,6 +287,18 @@ export function Flashcard({
     );
   }
 
+  if (isSessionComplete) {
+    return (
+      <main className="flashcard-page">
+        <div className="flashcard-frame">
+          <div className="flashcard-container">
+            <p className="flashcard-status">Ending session...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   if (!currentWord) {
     return (
       <main className="flashcard-page">

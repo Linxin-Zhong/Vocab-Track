@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Flashcard } from "./flashcard";
 import { getBooks, getWordsByBookId } from "../services/bookService";
+import { answerReviewWord } from "../services/reviewService";
 import { endReviewSession } from "../services/reviewService";
 
 vi.mock("../services/bookService", () => ({
@@ -16,6 +17,7 @@ vi.mock("../services/reviewService", () => ({
 
 const mockGetBooks = vi.mocked(getBooks);
 const mockGetWordsByBookId = vi.mocked(getWordsByBookId);
+const mockAnswerReviewWord = vi.mocked(answerReviewWord);
 const mockEndReviewSession = vi.mocked(endReviewSession);
 
 describe("Flashcard", () => {
@@ -201,6 +203,63 @@ describe("Flashcard", () => {
 
     await screen.findByRole("heading", { name: /abate/i });
     await user.click(screen.getByRole("button", { name: /quit session/i }));
+
+    await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
+  });
+
+  it("shows ending state (not no-words state) while backend session is completing", async () => {
+    const onQuit = vi.fn();
+    const user = userEvent.setup();
+    let resolveEndSession: ((value: {
+      session_id: number;
+      duration_seconds: number;
+      total: number;
+      correct: number;
+      accuracy: number;
+    }) => void) | null = null;
+
+    mockGetWordsByBookId.mockResolvedValueOnce([
+      { id: 10, word_text: "abate", meaning: "to lessen", difficulty: 2 },
+    ]);
+    mockAnswerReviewWord.mockResolvedValueOnce({
+      user_word_id: 10,
+      word_text: "abate",
+      is_correct: true,
+      pre_ease_factor: 1,
+      post_ease_factor: 2,
+      next_review_time: "2026-03-03T00:00:00Z",
+    });
+    mockEndReviewSession.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveEndSession = resolve;
+        }),
+    );
+
+    render(
+      <Flashcard
+        onQuit={onQuit}
+        sessionId={12}
+        bookId={2}
+        sessionWords={[{ user_word_id: 10, word_text: "abate", meaning: "to lessen" }]}
+      />,
+    );
+
+    await screen.findByRole("heading", { name: /abate/i });
+    await user.click(screen.getByRole("button", { name: /show answer/i }));
+    await user.click(screen.getByRole("button", { name: /i knew this/i }));
+
+    expect(await screen.findByText(/ending session/i)).toBeInTheDocument();
+    expect(screen.queryByText(/no words to review/i)).not.toBeInTheDocument();
+    expect(onQuit).not.toHaveBeenCalled();
+
+    resolveEndSession?.({
+      session_id: 12,
+      duration_seconds: 15,
+      total: 1,
+      correct: 1,
+      accuracy: 1,
+    });
 
     await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
   });
