@@ -212,15 +212,13 @@ export function Flashcard({
     ) {
       // Persist each answer to backend so session stats remain authoritative.
       setAnswerLoading(true);
-      setError(null);
       try {
         await answerReviewWord(sessionId, currentWord.user_word_id, isCorrect);
       } catch {
-        setError("Failed to save your answer. Please try again.");
+        // Treat answer save failures as non-fatal so the user can continue the session.
+      } finally {
         setAnswerLoading(false);
-        return;
       }
-      setAnswerLoading(false);
     }
 
     viewedCount.current += 1;
