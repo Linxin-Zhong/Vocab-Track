@@ -32,15 +32,18 @@ function pickLocalPracticeWords(words: Word[]): StudyWord[] {
   // Practice mode helper: backend session is absent, so keep each local drill short.
   if (words.length <= LOCAL_PRACTICE_LIMIT) return words;
 
-  const shuffled = [...words];
-  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+  // Use reservoir sampling to pick LOCAL_PRACTICE_LIMIT random words without
+  // shuffling or copying the entire array.
+  const reservoir: StudyWord[] = words.slice(0, LOCAL_PRACTICE_LIMIT);
+
+  for (let i = LOCAL_PRACTICE_LIMIT; i < words.length; i += 1) {
     const j = Math.floor(Math.random() * (i + 1));
-    const temp = shuffled[i];
-    shuffled[i] = shuffled[j];
-    shuffled[j] = temp;
+    if (j < LOCAL_PRACTICE_LIMIT) {
+      reservoir[j] = words[i];
+    }
   }
 
-  return shuffled.slice(0, LOCAL_PRACTICE_LIMIT);
+  return reservoir;
 }
 
 export function Flashcard({
