@@ -167,7 +167,7 @@ export function Flashcard({
       setError(null);
 
       try {
-        if (sessionId && sessionWords) {
+        if (sessionId != null && sessionWords != null) {
           // Preferred path: words returned by `/review/start/` for this session.
           if (isMounted) {
             const enrichedWords = await enrichSessionWordsWithExamples(sessionWords);
@@ -352,7 +352,6 @@ export function Flashcard({
             </>
           </section>
 
-          {error ? <p className="flashcard-error">{error}</p> : null}
           <button
             className="flashcard-quit"
             onClick={() => void finalizeSession()}
