@@ -40,7 +40,34 @@ function getLocalDateStamp(): string {
 
 function getReviewedTodayStorageKey(userEmail: string): string {
   // Keep this key date-scoped so "reviewed today" resets automatically each day.
-  return `${REVIEWED_TODAY_STORAGE_PREFIX}:${userEmail.toLowerCase()}:${getLocalDateStamp()}`;
+  const emailKeyPart = userEmail.toLowerCase();
+  const todayStamp = getLocalDateStamp();
+  const todayKey = `${REVIEWED_TODAY_STORAGE_PREFIX}:${emailKeyPart}:${todayStamp}`;
+
+  // Clean up older reviewed_today:* keys for this user to avoid unbounded growth.
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const prefixForUser = `${REVIEWED_TODAY_STORAGE_PREFIX}:${emailKeyPart}:`;
+      const keysToRemove: string[] = [];
+
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const key = window.localStorage.key(i);
+        if (!key) continue;
+        if (key.startsWith(prefixForUser) && key !== todayKey) {
+          keysToRemove.push(key);
+        }
+      }
+
+      for (const oldKey of keysToRemove) {
+        window.localStorage.removeItem(oldKey);
+      }
+    }
+  } catch {
+    // If localStorage is not accessible (e.g., in some environments),
+    // fail silently and just return today's key.
+  }
+
+  return todayKey;
 }
 
 function getActiveSessionStorageKey(userEmail: string): string {
