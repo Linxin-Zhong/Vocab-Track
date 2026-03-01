@@ -202,12 +202,11 @@ export default function App() {
     if (res.success) {
       // TODO: set up user & implement dashboard UI
       const userEmail = res.user.email;
-      // New users follow the same restore flow in case of a refresh during onboarding.
-      const restoredSession = readActiveSessionFromStorage(userEmail);
+      // Align behavior with login: do not auto-resume unfinished review sessions
+      // until we can safely restore full progress from the backend.
       setCurrentUserEmail(userEmail);
       syncTodayReviewedForUser(userEmail);
-      applyActiveSession(restoredSession);
-      navigateTo(restoredSession ? "flashcard" : "dashboard");
+      navigateTo("dashboard");
       console.info("register succeeded.");
     } else {
       // TODO: display error messages.
