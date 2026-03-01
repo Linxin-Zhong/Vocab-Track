@@ -123,13 +123,22 @@ export default function App() {
   };
 
   const readTodayReviewedFromStorage = (userEmail: string): number => {
-    const stored = localStorage.getItem(getReviewedTodayStorageKey(userEmail));
-    const parsed = Number(stored ?? "0");
-    return Number.isFinite(parsed) ? parsed : 0;
+    try {
+      const stored = localStorage.getItem(getReviewedTodayStorageKey(userEmail));
+      const parsed = Number(stored ?? "0");
+      return Number.isFinite(parsed) ? parsed : 0;
+    } catch {
+      // If localStorage is unavailable or access fails, treat as zero reviewed.
+      return 0;
+    }
   };
 
   const writeTodayReviewedToStorage = (userEmail: string, count: number) => {
-    localStorage.setItem(getReviewedTodayStorageKey(userEmail), String(count));
+    try {
+      localStorage.setItem(getReviewedTodayStorageKey(userEmail), String(count));
+    } catch {
+      // Swallow storage errors to avoid breaking login/session flows.
+    }
   };
 
   const syncTodayReviewedForUser = (userEmail: string) => {
