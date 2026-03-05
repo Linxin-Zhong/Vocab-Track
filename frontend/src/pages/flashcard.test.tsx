@@ -140,42 +140,42 @@ describe("Flashcard", () => {
       });
     try {
       const user = userEvent.setup();
-    mockGetBooks.mockResolvedValueOnce([
-      { id: 6, book_name: "Deck", is_default: false },
-    ]);
-    mockGetWordsByBookId.mockResolvedValueOnce([
-      {
-        id: 21,
-        word_text: "lucid",
-        meaning: "clear and easy to understand",
-        difficulty: 1,
-      },
-      {
-        id: 22,
-        word_text: "zeal",
-        meaning: "great energy",
-        difficulty: 2,
-      },
-    ]);
+      mockGetBooks.mockResolvedValueOnce([
+        { id: 6, book_name: "Deck", is_default: false },
+      ]);
+      mockGetWordsByBookId.mockResolvedValueOnce([
+        {
+          id: 21,
+          word_text: "lucid",
+          meaning: "clear and easy to understand",
+          difficulty: 1,
+        },
+        {
+          id: 22,
+          word_text: "zeal",
+          meaning: "great energy",
+          difficulty: 2,
+        },
+      ]);
 
-    render(<Flashcard onQuit={vi.fn()} />);
+      render(<Flashcard onQuit={vi.fn()} />);
 
-    await screen.findByRole("heading", { name: "lucid" });
-    await user.click(screen.getByRole("button", { name: /show answer/i }));
-    expect(
-      screen.getByRole("button", { name: /i knew this/i }),
-    ).toBeInTheDocument();
+      await screen.findByRole("heading", { name: "lucid" });
+      await user.click(screen.getByRole("button", { name: /show answer/i }));
+      expect(
+        screen.getByRole("button", { name: /i knew this/i }),
+      ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /i knew this/i }));
+      await user.click(screen.getByRole("button", { name: /i knew this/i }));
 
-    expect(
-      screen.getByText(/great! you remembered this word\./i),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /i knew this/i })).toBeDisabled();
-    expect(timeoutCallbacks.length).toBeGreaterThan(0);
-    act(() => {
-      timeoutCallbacks[timeoutCallbacks.length - 1]();
-    });
+      expect(
+        screen.getByText(/great! you remembered this word\./i),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /i knew this/i })).toBeDisabled();
+      expect(timeoutCallbacks.length).toBeGreaterThan(0);
+      act(() => {
+        timeoutCallbacks[timeoutCallbacks.length - 1]();
+      });
       expect(await screen.findByRole("heading", { name: "zeal" })).toBeInTheDocument();
       expect(screen.getByText(/card 2 of 2/i)).toBeInTheDocument();
       expect(screen.getByRole("button", { name: /show answer/i })).toBeInTheDocument();
@@ -200,30 +200,30 @@ describe("Flashcard", () => {
     try {
       const onQuit = vi.fn();
       const user = userEvent.setup();
-    mockGetBooks.mockResolvedValueOnce([
-      { id: 7, book_name: "Deck", is_default: false },
-    ]);
-    mockGetWordsByBookId.mockResolvedValueOnce([
-      {
-        id: 31,
-        word_text: "abate",
-        meaning: "to lessen",
-        difficulty: 1,
-      },
-    ]);
+      mockGetBooks.mockResolvedValueOnce([
+        { id: 7, book_name: "Deck", is_default: false },
+      ]);
+      mockGetWordsByBookId.mockResolvedValueOnce([
+        {
+          id: 31,
+          word_text: "abate",
+          meaning: "to lessen",
+          difficulty: 1,
+        },
+      ]);
 
-    render(<Flashcard onQuit={onQuit} />);
+      render(<Flashcard onQuit={onQuit} />);
 
-    await screen.findByRole("heading", { name: "abate" });
-    await user.click(screen.getByRole("button", { name: /show answer/i }));
-    await user.click(screen.getByRole("button", { name: /i didn't know this/i }));
-    expect(
-      screen.getByText(/no problem\. you'll see this word again soon\./i),
-    ).toBeInTheDocument();
-    expect(timeoutCallbacks.length).toBeGreaterThan(0);
-    act(() => {
-      timeoutCallbacks[timeoutCallbacks.length - 1]();
-    });
+      await screen.findByRole("heading", { name: "abate" });
+      await user.click(screen.getByRole("button", { name: /show answer/i }));
+      await user.click(screen.getByRole("button", { name: /i didn't know this/i }));
+      expect(
+        screen.getByText(/no problem\. you'll see this word again soon\./i),
+      ).toBeInTheDocument();
+      expect(timeoutCallbacks.length).toBeGreaterThan(0);
+      act(() => {
+        timeoutCallbacks[timeoutCallbacks.length - 1]();
+      });
       await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1), {
         timeout: 4500,
       });
@@ -270,60 +270,60 @@ describe("Flashcard", () => {
     try {
       const onQuit = vi.fn();
       const user = userEvent.setup();
-    let resolveEndSession: ((value: {
-      session_id: number;
-      duration_seconds: number;
-      total: number;
-      correct: number;
-      accuracy: number;
-    }) => void) | null = null;
+      let resolveEndSession: ((value: {
+        session_id: number;
+        duration_seconds: number;
+        total: number;
+        correct: number;
+        accuracy: number;
+      }) => void) | null = null;
 
-    mockGetWordsByBookId.mockResolvedValueOnce([
-      { id: 10, word_text: "abate", meaning: "to lessen", difficulty: 2 },
-    ]);
-    mockAnswerReviewWord.mockResolvedValueOnce({
-      user_word_id: 10,
-      word_text: "abate",
-      is_correct: true,
-      pre_ease_factor: 1,
-      post_ease_factor: 2,
-      next_review_time: "2026-03-03T00:00:00Z",
-    });
-    mockEndReviewSession.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          resolveEndSession = resolve;
-        }),
-    );
+      mockGetWordsByBookId.mockResolvedValueOnce([
+        { id: 10, word_text: "abate", meaning: "to lessen", difficulty: 2 },
+      ]);
+      mockAnswerReviewWord.mockResolvedValueOnce({
+        user_word_id: 10,
+        word_text: "abate",
+        is_correct: true,
+        pre_ease_factor: 1,
+        post_ease_factor: 2,
+        next_review_time: "2026-03-03T00:00:00Z",
+      });
+      mockEndReviewSession.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveEndSession = resolve;
+          }),
+      );
 
-    render(
-      <Flashcard
-        onQuit={onQuit}
-        sessionId={12}
-        bookId={2}
-        sessionWords={[{ user_word_id: 10, word_text: "abate", meaning: "to lessen" }]}
-      />,
-    );
+      render(
+        <Flashcard
+          onQuit={onQuit}
+          sessionId={12}
+          bookId={2}
+          sessionWords={[{ user_word_id: 10, word_text: "abate", meaning: "to lessen" }]}
+        />,
+      );
 
-    await screen.findByRole("heading", { name: /abate/i });
-    await user.click(screen.getByRole("button", { name: /show answer/i }));
-    await user.click(screen.getByRole("button", { name: /i knew this/i }));
-    expect(timeoutCallbacks.length).toBeGreaterThan(0);
-    act(() => {
-      timeoutCallbacks[timeoutCallbacks.length - 1]();
-    });
+      await screen.findByRole("heading", { name: /abate/i });
+      await user.click(screen.getByRole("button", { name: /show answer/i }));
+      await user.click(screen.getByRole("button", { name: /i knew this/i }));
+      expect(timeoutCallbacks.length).toBeGreaterThan(0);
+      act(() => {
+        timeoutCallbacks[timeoutCallbacks.length - 1]();
+      });
 
-    expect(await screen.findByText(/ending session/i)).toBeInTheDocument();
-    expect(screen.queryByText(/no words to review/i)).not.toBeInTheDocument();
-    expect(onQuit).not.toHaveBeenCalled();
+      expect(await screen.findByText(/ending session/i)).toBeInTheDocument();
+      expect(screen.queryByText(/no words to review/i)).not.toBeInTheDocument();
+      expect(onQuit).not.toHaveBeenCalled();
 
-    resolveEndSession?.({
-      session_id: 12,
-      duration_seconds: 15,
-      total: 1,
-      correct: 1,
-      accuracy: 1,
-    });
+      resolveEndSession?.({
+        session_id: 12,
+        duration_seconds: 15,
+        total: 1,
+        correct: 1,
+        accuracy: 1,
+      });
 
       await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
     } finally {
