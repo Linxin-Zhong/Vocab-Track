@@ -59,9 +59,9 @@ python manage.py runserver
 8. (Optional) View the Django admin dashboard
 http://127.0.0.1:8000/admin/
 
-## Running tests
+## Testing
+Run backend tests:
 
-Run all tests:
 ```bash
 python manage.py test
 ```
@@ -78,6 +78,26 @@ Run a specific test class or method:
 python manage.py test book.test.BookViewSetTest
 python manage.py test book.test.BookViewSetTest.test_create_book_successfully
 ```
+
+Run tests with coverage and generate HTML report:
+
+```bash
+pip install coverage
+coverage run --source=. manage.py test
+coverage report --show-missing
+coverage html
+open htmlcov/index.html   # macOS
+```
+
+Notes:
+- `.coverage` is a binary data file used by coverage tools.
+- Human-readable report is `htmlcov/index.html`.
+
+## CI (GitHub Actions)
+Backend tests run in `Backend Tests` workflow:
+- Triggers: pull requests and pushes to `main` when `backend/**` or `.github/workflows/backend-tests.yml` changes
+- Manual run: Actions -> `Backend Tests` -> `Run workflow`
+- Artifact: `backend-coverage-html` (after downloading, extract and open `backend/htmlcov/index.html`)
 
 ## Notes and tips
 - To reset a local database (dangerous, destructive):
