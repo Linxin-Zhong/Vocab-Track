@@ -54,7 +54,7 @@ Run all tests with coverage report:
 npx vitest run --coverage
 ```
 
-Coverage requires the Vitest V8 coverage plugin:
+If you don't already have the Vitest V8 coverage plugin listed in your `devDependencies`, install it with:
 ```bash
 npm install -D @vitest/coverage-v8
 ```
