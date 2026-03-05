@@ -400,7 +400,7 @@ class ReviewStartViewTest(APITestCase):
         data = {"book_id": empty_book.id, "limit": 5}
         response = self.client.post("/review/start/", data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["detail"], "book has no words")
+        self.assertEqual(response.data["message"], "book has no words")
 
     def test_start_review_creates_user_words(self):
         """Test that start review creates UserWord entries"""

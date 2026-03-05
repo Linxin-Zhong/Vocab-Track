@@ -59,6 +59,26 @@ python manage.py runserver
 8. (Optional) View the Django admin dashboard
 http://127.0.0.1:8000/admin/
 
+## Running tests
+
+Run all tests:
+```bash
+python manage.py test
+```
+
+Run tests for a specific app:
+```bash
+python manage.py test book
+python manage.py test user
+python manage.py test review
+```
+
+Run a specific test class or method:
+```bash
+python manage.py test book.test.BookViewSetTest
+python manage.py test book.test.BookViewSetTest.test_create_book_successfully
+```
+
 ## Notes and tips
 - To reset a local database (dangerous, destructive):
 
