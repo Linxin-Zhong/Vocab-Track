@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from api.utils import format_serializer_errors
 
 from review.models import UserWord, ReviewSession, ReviewItem
 from book.models import BookWord, Book
@@ -21,15 +22,8 @@ class ReviewStartView(APIView):
     def post(self, request):
         serializer = ReviewStartSerializer(data=request.data)
         if not serializer.is_valid():
-            errors = serializer.errors
-            error_messages = []
-            for field, messages in errors.items():
-                if isinstance(messages, list):
-                    error_messages.extend([f"{field}: {msg}" for msg in messages])
-                else:
-                    error_messages.append(f"{field}: {messages}")
             return Response(
-                {"message": "; ".join(error_messages)},
+                {"message": format_serializer_errors(serializer.errors)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -126,16 +120,8 @@ class ReviewAnswerView(APIView):
     def post(self, request):
         serializer = ReviewAnswerSerializer(data=request.data)
         if not serializer.is_valid():
-            errors = serializer.errors
-            # Convert validation errors to a single message string
-            error_messages = []
-            for field, messages in errors.items():
-                if isinstance(messages, list):
-                    error_messages.extend([f"{field}: {msg}" for msg in messages])
-                else:
-                    error_messages.append(f"{field}: {messages}")
             return Response(
-                {"message": "; ".join(error_messages)},
+                {"message": format_serializer_errors(serializer.errors)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -223,16 +209,8 @@ class ReviewEndView(APIView):
     def post(self, request):
         serializer = ReviewEndSerializer(data=request.data)
         if not serializer.is_valid():
-            errors = serializer.errors
-            # Convert validation errors to a single message string
-            error_messages = []
-            for field, messages in errors.items():
-                if isinstance(messages, list):
-                    error_messages.extend([f"{field}: {msg}" for msg in messages])
-                else:
-                    error_messages.append(f"{field}: {messages}")
             return Response(
-                {"message": "; ".join(error_messages)},
+                {"message": format_serializer_errors(serializer.errors)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

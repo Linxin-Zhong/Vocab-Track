@@ -53,9 +53,9 @@ class FileUploadSerializer(serializers.Serializer):
         if not (file_name.endswith(".csv") or file_name.endswith(".txt")):
             raise serializers.ValidationError("Only CSV and TXT files are supported.")
 
-        # Try parsing the file to validate content
+        # Try parsing the file to validate content and cache the result
         try:
-            self._parse_file_content(value)
+            self._cached_words_data = self._parse_file_content(value)
         except serializers.ValidationError:
             raise
         except Exception as e:
@@ -76,6 +76,9 @@ class FileUploadSerializer(serializers.Serializer):
         - meaning (required)
         - example (optional)
         - difficulty (optional, values 1–3, default 1)
+
+        Returns:
+            list: List of validated rows (each row is a list of strings)
         """
         try:
             # Decode file content
@@ -95,7 +98,7 @@ class FileUploadSerializer(serializers.Serializer):
                 # Check minimum required fields
                 if len(row) < 2:
                     raise serializers.ValidationError(
-                        f"Row {row_num}: Each line must have at least 'word_text' and 'meaning' separated by comma."
+                        f"Row {row_num}: Each line must have at least 'word_text' and 'meaning' separated by a comma."
                     )
 
                 word_text = row[0].strip()
@@ -110,6 +113,8 @@ class FileUploadSerializer(serializers.Serializer):
 
             if not words_data:
                 raise serializers.ValidationError("File contains no word entries.")
+
+            return words_data
 
         except UnicodeDecodeError:
             raise serializers.ValidationError(
@@ -134,20 +139,26 @@ class FileUploadSerializer(serializers.Serializer):
         Returns:
             list: List of dictionaries with word data
         """
-        uploaded_file = self.validated_data["file"]
-        file_content = uploaded_file.read().decode("utf-8")
-        file_io = io.StringIO(file_content)
+        # Reuse cached data from validation if available
+        if hasattr(self, "_cached_words_data"):
+            raw_rows = self._cached_words_data
+        else:
+            # Fallback: parse the file if not cached
+            uploaded_file = self.validated_data["file"]
+            uploaded_file.seek(0)  # Reset file pointer to beginning
+            file_content = uploaded_file.read().decode("utf-8")
+            file_io = io.StringIO(file_content)
+            reader = csv.reader(file_io)
 
-        # Parse CSV without header
-        reader = csv.reader(file_io)
+            raw_rows = []
+            for row in reader:
+                if not row or not any(cell.strip() for cell in row):
+                    continue
+                raw_rows.append(row)
 
-        # Parse rows
+        # Transform raw rows into structured word data
         words_data = []
-        for row in reader:
-            # Skip empty rows
-            if not row or not any(cell.strip() for cell in row):
-                continue
-
+        for row in raw_rows:
             word_text = row[0].strip()
             meaning = row[1].strip()
             example = row[2].strip() if len(row) > 2 else ""

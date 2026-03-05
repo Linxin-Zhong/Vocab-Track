@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError
 from django.db.models import Q
 from django.db import transaction
 from word.models import Word
+from api.utils import format_serializer_errors
 from .models import Book, BookWord
 from .serializers import (
     BookWordSerializer,
@@ -115,32 +116,16 @@ class BookWordViewSet(GenericViewSet):
             # Validate words data with BookWordCreateSerializer
             serializer = BookWordCreateSerializer(data=words_data, many=True)
             if not serializer.is_valid():
-                # Convert validation errors to message format
-                errors = serializer.errors
-                error_messages = []
-                for field, messages in errors.items():
-                    if isinstance(messages, list):
-                        error_messages.extend([f"{field}: {msg}" for msg in messages])
-                    else:
-                        error_messages.append(f"{field}: {messages}")
                 return Response(
-                    {"message": "; ".join(error_messages)},
+                    {"message": format_serializer_errors(serializer.errors)},
                     status=400,
                 )
         else:
             # Handle JSON array (existing functionality)
             serializer = BookWordCreateSerializer(data=request.data, many=True)
             if not serializer.is_valid():
-                # Convert validation errors to message format
-                errors = serializer.errors
-                error_messages = []
-                for field, messages in errors.items():
-                    if isinstance(messages, list):
-                        error_messages.extend([f"{field}: {msg}" for msg in messages])
-                    else:
-                        error_messages.append(f"{field}: {messages}")
                 return Response(
-                    {"message": "; ".join(error_messages)},
+                    {"message": format_serializer_errors(serializer.errors)},
                     status=400,
                 )
 
@@ -232,15 +217,8 @@ class BookWordViewSet(GenericViewSet):
             book_word, data=request.data, partial=True
         )
         if not serializer.is_valid():
-            errors = serializer.errors
-            error_messages = []
-            for field, messages in errors.items():
-                if isinstance(messages, list):
-                    error_messages.extend([f"{field}: {msg}" for msg in messages])
-                else:
-                    error_messages.append(f"{field}: {messages}")
             return Response(
-                {"message": "; ".join(error_messages)},
+                {"message": format_serializer_errors(serializer.errors)},
                 status=400,
             )
         serializer.save()
