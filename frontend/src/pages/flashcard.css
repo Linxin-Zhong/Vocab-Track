@@ -308,7 +308,9 @@
   .flashcard-feedback-overlay {
     font-size: 1.35rem;
     padding: 0 0.6rem;
-
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
   }
 
   .flashcard-content {
