@@ -7,13 +7,20 @@ import { Dashboard } from "./pages/dashboard";
 import { AuthError } from "./types/auth";
 import { Flashcard } from "./pages/flashcard";
 import { SessionSummary } from "./pages/session_summary";
+import { ProgressPage } from "./pages/ProgressPage";
 import { getBooks } from "./services/bookService";
 import {
   startReviewSession,
   type ReviewSessionWord,
 } from "./services/reviewService";
 
-type Screen = "landing" | "signup" | "dashboard" | "flashcard" | "summary";
+type Screen =
+  | "landing"
+  | "signup"
+  | "dashboard"
+  | "progress"
+  | "flashcard"
+  | "summary";
 type ActiveSession = {
   session_id: number;
   book_id: number;
@@ -291,8 +298,42 @@ export default function App() {
     }
   };
 
+  const showTopNav =
+    currentScreen === "dashboard" || currentScreen === "progress";
+
   return (
-    <div>
+    <div className="app-shell">
+      {showTopNav && (
+        <header className="top-nav" role="banner">
+          <div className="top-nav-inner">
+            <p className="top-nav-brand">Vocab Track</p>
+            <nav className="top-nav-links" aria-label="Primary">
+              <button
+                type="button"
+                className={`top-nav-link ${
+                  currentScreen === "dashboard" ? "is-active" : ""
+                }`}
+                onClick={() => navigateTo("dashboard")}
+              >
+                Dashboard
+              </button>
+              <button
+                type="button"
+                className={`top-nav-link ${
+                  currentScreen === "progress" ? "is-active" : ""
+                }`}
+                onClick={() => navigateTo("progress")}
+              >
+                Progress
+              </button>
+            </nav>
+            <button type="button" className="top-nav-link" onClick={handleLogout}>
+              Log out
+            </button>
+          </div>
+        </header>
+      )}
+
       {currentScreen === "landing" && (
         <StartingPage onGetStarted={() => navigateTo("signup")} />
       )}
@@ -303,11 +344,12 @@ export default function App() {
         <Dashboard
           wordsReviewedToday={totalReviewed}
           onStartSession={handleStartSession}
-          onLogout={handleLogout}
+          onViewProgress={() => navigateTo("progress")}
           isStartingSession={startSessionLoading}
           startSessionError={startSessionError}
         />
       )}
+      {currentScreen === "progress" && <ProgressPage />}
       {currentScreen === "flashcard" && (
         <Flashcard
           onQuit={handleFlashcardQuit}

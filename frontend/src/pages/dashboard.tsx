@@ -2,7 +2,7 @@ import "./dashboard.css";
 interface DashboardProps {
   wordsReviewedToday: number;
   onStartSession: () => Promise<void> | void;
-  onLogout?: () => void;
+  onViewProgress?: () => void;
   isStartingSession?: boolean;
   startSessionError?: string | null;
 }
@@ -10,7 +10,7 @@ interface DashboardProps {
 export function Dashboard({
   wordsReviewedToday,
   onStartSession,
-  onLogout,
+  onViewProgress,
   isStartingSession = false,
   startSessionError = null,
 }: DashboardProps) {
@@ -51,11 +51,16 @@ export function Dashboard({
           ) : null}
         </div>
 
-        {/* Logout */}
-        {onLogout && (
-          <button onClick={onLogout} className="logout-btn">
-            Log out
-          </button>
+        {onViewProgress && (
+          <div className="dashboard-secondary-actions">
+            <button
+              type="button"
+              className="dashboard-secondary-btn"
+              onClick={onViewProgress}
+            >
+              View Progress
+            </button>
+          </div>
         )}
       </div>
     </div>

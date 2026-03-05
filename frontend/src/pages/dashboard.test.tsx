@@ -58,41 +58,43 @@ describe("Dashboard", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders log out button when onLogout prop is provided", () => {
-    const onLogout = vi.fn();
+  it("renders view progress button when onViewProgress prop is provided", () => {
+    const onViewProgress = vi.fn();
     render(
       <Dashboard
         wordsReviewedToday={0}
         onStartSession={() => {}}
-        onLogout={onLogout}
+        onViewProgress={onViewProgress}
       />
     );
 
-    expect(screen.getByRole("button", { name: /log out/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /view progress/i }),
+    ).toBeInTheDocument();
   });
 
-  it("does not render log out button when onLogout prop is not provided", () => {
+  it("does not render view progress button when onViewProgress prop is not provided", () => {
     render(<Dashboard wordsReviewedToday={0} onStartSession={() => {}} />);
 
     expect(
-      screen.queryByRole("button", { name: /log out/i })
+      screen.queryByRole("button", { name: /view progress/i }),
     ).not.toBeInTheDocument();
   });
 
-  it("calls onLogout when the 'Log out' button is clicked", async () => {
+  it("calls onViewProgress when the 'View Progress' button is clicked", async () => {
     const user = userEvent.setup();
-    const onLogout = vi.fn();
+    const onViewProgress = vi.fn();
     render(
       <Dashboard
         wordsReviewedToday={0}
         onStartSession={() => {}}
-        onLogout={onLogout}
+        onViewProgress={onViewProgress}
       />
     );
 
-    const button = screen.getByRole("button", { name: /log out/i });
+    const button = screen.getByRole("button", { name: /view progress/i });
     await user.click(button);
 
-    expect(onLogout).toHaveBeenCalledTimes(1);
+    expect(onViewProgress).toHaveBeenCalledTimes(1);
   });
 });

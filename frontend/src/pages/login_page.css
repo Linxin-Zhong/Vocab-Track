@@ -20,6 +20,8 @@ body {
 .login-page {
   margin-top: 4rem;
   margin-bottom: 3rem;
+  margin-left: auto;
+  margin-right: auto;
   max-width: 75vh;
   display: flex;
   align-items: center;
