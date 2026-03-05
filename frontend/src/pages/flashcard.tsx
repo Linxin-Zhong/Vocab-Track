@@ -76,12 +76,12 @@ export function Flashcard({
     setViewMode("question");
   };
 
-  const clearFeedbackTimeout = useCallback(() => {
+  const clearFeedbackTimeout = () => {
     if (feedbackTimeoutRef.current != null) {
       window.clearTimeout(feedbackTimeoutRef.current);
       feedbackTimeoutRef.current = null;
     }
-  }, []);
+  };
 
   const buildLocalSessionStats = useCallback(() => {
     const total = viewedCount.current;
