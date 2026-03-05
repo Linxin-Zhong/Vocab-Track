@@ -27,6 +27,7 @@ type StudyWord = Pick<Word, "word_text" | "meaning" | "example"> & {
 };
 
 const LOCAL_PRACTICE_LIMIT = 5;
+const FEEDBACK_OVERLAY_DURATION_MS = 1000;
 
 function pickLocalPracticeWords(words: Word[]): StudyWord[] {
   // Practice mode helper: backend session is absent, so keep each local drill short.
@@ -57,19 +58,29 @@ export function Flashcard({
   const [error, setError] = useState<string | null>(null);
   const [answerLoading, setAnswerLoading] = useState(false);
   const [endLoading, setEndLoading] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
   const [words, setWords] = useState<StudyWord[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const correctCount = useRef(0);
   const viewedCount = useRef(0);
   const hasEndedSession = useRef(false);
+  const feedbackTimeoutRef = useRef<number | null>(null);
 
   const currentWord = words[currentIndex];
   const isSessionComplete = words.length > 0 && currentIndex >= words.length;
+  const isFeedbackVisible = feedbackMessage != null;
 
   const goToNextCard = () => {
     setCurrentIndex((prev) => prev + 1);
     setViewMode("question");
+  };
+
+  const clearFeedbackTimeout = () => {
+    if (feedbackTimeoutRef.current != null) {
+      window.clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = null;
+    }
   };
 
   const buildLocalSessionStats = useCallback(() => {
@@ -136,6 +147,12 @@ export function Flashcard({
       void finalizeSession();
     }
   }, [isSessionComplete, finalizeSession]);
+
+  useEffect(() => {
+    return () => {
+      clearFeedbackTimeout();
+    };
+  }, [clearFeedbackTimeout]);
 
   const enrichSessionWordsWithExamples = useCallback(
     async (rawSessionWords: ReviewSessionWord[]): Promise<StudyWord[]> => {
@@ -224,14 +241,19 @@ export function Flashcard({
     };
   }, [sessionId, sessionWords, bookId, enrichSessionWordsWithExamples]);
 
-  const cardCountLabel = useMemo(() => {
+  const progressLabel = useMemo(() => {
     if (!words.length) return "Card 0 of 0";
     if (isSessionComplete) return `Card ${words.length} of ${words.length}`;
     return `Card ${currentIndex + 1} of ${words.length}`;
   }, [words.length, currentIndex, isSessionComplete]);
 
+  const progressPercent = useMemo(() => {
+    if (!words.length) return 0;
+    return ((currentIndex + 1) / words.length) * 100;
+  }, [words.length, currentIndex]);
+
   const handleSubmitAnswer = async (isCorrect: boolean) => {
-    if (answerLoading || endLoading) return;
+    if (answerLoading || endLoading || isFeedbackVisible) return;
 
     if (
       sessionId != null &&
@@ -253,7 +275,18 @@ export function Flashcard({
     if (isCorrect) {
       correctCount.current += 1;
     }
-    goToNextCard();
+
+    setFeedbackMessage(
+      isCorrect
+        ? "Great! You remembered this word."
+        : "No problem. You'll see this word again soon.",
+    );
+    clearFeedbackTimeout();
+    feedbackTimeoutRef.current = window.setTimeout(() => {
+      setFeedbackMessage(null);
+      goToNextCard();
+      feedbackTimeoutRef.current = null;
+    }, FEEDBACK_OVERLAY_DURATION_MS);
   };
 
   if (loading) {
@@ -322,9 +355,28 @@ export function Flashcard({
     <main className="flashcard-page">
       <div className="flashcard-frame">
         <div className="flashcard-container">
-          <p className="flashcard-progress">{cardCountLabel}</p>
+          <div className="flashcard-progress" aria-label="Session progress">
+            <div className="flashcard-progress-row">
+              <p className="flashcard-progress-label">{progressLabel}</p>
+            </div>
+            <div className="flashcard-progress-track" aria-hidden="true">
+              <div
+                className="flashcard-progress-fill"
+                style={{ width: `${Math.min(progressPercent, 100)}%` }}
+              />
+            </div>
+          </div>
 
           <section className="flashcard-card">
+            {isFeedbackVisible ? (
+              <div
+                className="flashcard-feedback-overlay"
+                role="status"
+                aria-live="polite"
+              >
+                {feedbackMessage}
+              </div>
+            ) : null}
             <>
               <div className="flashcard-content">
                 <h1 className="flashcard-word">{currentWord.word_text}</h1>
@@ -344,7 +396,7 @@ export function Flashcard({
               {viewMode === "question" ? (
                 <button
                   className="flashcard-primary-btn"
-                  disabled={answerLoading || endLoading}
+                  disabled={answerLoading || endLoading || isFeedbackVisible}
                   onClick={() => setViewMode("answer")}
                 >
                   Show Answer
@@ -353,14 +405,14 @@ export function Flashcard({
                 <div className="flashcard-answer-actions">
                   <button
                     className="flashcard-secondary-btn"
-                    disabled={answerLoading || endLoading}
+                    disabled={answerLoading || endLoading || isFeedbackVisible}
                     onClick={() => void handleSubmitAnswer(false)}
                   >
                     I didn&apos;t know this
                   </button>
                   <button
                     className="flashcard-primary-btn"
-                    disabled={answerLoading || endLoading}
+                    disabled={answerLoading || endLoading || isFeedbackVisible}
                     onClick={() => void handleSubmitAnswer(true)}
                   >
                     I knew this

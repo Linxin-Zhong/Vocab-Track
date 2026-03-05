@@ -1,5 +1,5 @@
 .flashcard-page {
-  --flashcard-card-width: 56rem;
+  --flashcard-card-width: 54rem;
   --flashcard-card-height: 26rem;
   min-height: 100vh;
   display: flex;
@@ -10,13 +10,14 @@
 }
 
 .flashcard-frame {
-  width: min(70rem, 100%);
+  width: min(54rem, 100%);
   background: transparent;
   padding: 1rem 2rem 0.8rem; /* pt-4 px-8 pb-3 */
 }
 
 .flashcard-container {
-  width: min(var(--flashcard-card-width), 100%);
+  width: var(--flashcard-card-width);
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -25,27 +26,75 @@
 }
 
 .flashcard-progress {
+  width: var(--flashcard-card-width);
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.flashcard-progress-row {
+  display: flex;
+  justify-content: center;
+}
+
+.flashcard-progress-label {
   margin: 0;
   text-align: center;
-  font-size: 1.6rem; /* ~text-2xl */
+  font-size: 1rem;
   color: #737373; /* text-neutral-500 */
   line-height: 1.2;
-  font-weight: 400;
+  font-weight: 500;
+}
+
+.flashcard-progress-track {
+  width: 100%;
+  height: 0.35rem;
+  background: #e5e5e5;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.flashcard-progress-fill {
+  height: 100%;
+  background: #525252;
+  border-radius: inherit;
+  transition: width 180ms ease-out;
 }
 
 .flashcard-card {
-  width: min(var(--flashcard-card-width), 100%);
+  width: var(--flashcard-card-width);
+  max-width: 100%;
   box-sizing: border-box;
   background: #ffffff; /* bg-white */
   border: 1px solid #e5e5e5; /* border-neutral-200 */
   border-radius: 1rem; /* rounded-2xl */
   padding: 1.4rem 2rem; /* py-6 px-8 */
   height: var(--flashcard-card-height);
+  min-height: var(--flashcard-card-height);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.flashcard-feedback-overlay {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: calc(100% - 2rem);
+  padding: 0.75rem 1rem;
+  border-radius: 0.85rem;
+  background: rgba(23, 23, 23, 0.9);
+  color: #ffffff;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .flashcard-content {
@@ -178,11 +227,15 @@
   }
 
   .flashcard-progress {
-    font-size: 1.25rem; /* text-xl */
+    gap: 0.4rem;
+  }
+
+  .flashcard-progress-label {
+    font-size: 0.9rem;
   }
 
   .flashcard-card {
-    width: min(var(--flashcard-card-width), 100%);
+    width: 100%;
     height: var(--flashcard-card-height);
     border-radius: 1.6rem; /* ~rounded-3xl */
     padding: 1.1rem 1.2rem; /* py-4 px-5 */
@@ -234,14 +287,23 @@
   }
 
   .flashcard-card {
-    width: min(var(--flashcard-card-width), 100%);
+    width: 100%;
     height: var(--flashcard-card-height);
     border-radius: 1.15rem; /* rounded-2xl */
     padding: 1.1rem 0.95rem; /* py-4 px-4 */
   }
 
   .flashcard-progress {
-    font-size: 1.15rem; /* ~text-lg */
+    gap: 0.35rem;
+  }
+
+  .flashcard-progress-label {
+    font-size: 0.85rem;
+  }
+
+  .flashcard-feedback-overlay {
+    font-size: 0.85rem;
+    max-width: calc(100% - 1.2rem);
   }
 
   .flashcard-content {

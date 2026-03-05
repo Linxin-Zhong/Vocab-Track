@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Flashcard } from "./flashcard";
@@ -22,7 +22,9 @@ const mockEndReviewSession = vi.mocked(endReviewSession);
 
 describe("Flashcard", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it("shows loading first and then renders no words state when no books", async () => {
@@ -125,64 +127,110 @@ describe("Flashcard", () => {
   });
 
   it("moves to the next card and resets to question view after marking known", async () => {
-    const user = userEvent.setup();
-    mockGetBooks.mockResolvedValueOnce([
-      { id: 6, book_name: "Deck", is_default: false },
-    ]);
-    mockGetWordsByBookId.mockResolvedValueOnce([
-      {
-        id: 21,
-        word_text: "lucid",
-        meaning: "clear and easy to understand",
-        difficulty: 1,
-      },
-      {
-        id: 22,
-        word_text: "zeal",
-        meaning: "great energy",
-        difficulty: 2,
-      },
-    ]);
+    const timeoutCallbacks: Array<() => void> = [];
+    const nativeSetTimeout = window.setTimeout.bind(window);
+    const setTimeoutSpy = vi
+      .spyOn(window, "setTimeout")
+      .mockImplementation((cb: TimerHandler, delay?: number, ...args: unknown[]) => {
+        if (delay === 1000 && typeof cb === "function") {
+          timeoutCallbacks.push(cb);
+          return 1;
+        }
+        return nativeSetTimeout(cb, delay, ...(args as []));
+      });
+    try {
+      const user = userEvent.setup();
+      mockGetBooks.mockResolvedValueOnce([
+        { id: 6, book_name: "Deck", is_default: false },
+      ]);
+      mockGetWordsByBookId.mockResolvedValueOnce([
+        {
+          id: 21,
+          word_text: "lucid",
+          meaning: "clear and easy to understand",
+          difficulty: 1,
+        },
+        {
+          id: 22,
+          word_text: "zeal",
+          meaning: "great energy",
+          difficulty: 2,
+        },
+      ]);
 
-    render(<Flashcard onQuit={vi.fn()} />);
+      render(<Flashcard onQuit={vi.fn()} />);
 
-    await screen.findByRole("heading", { name: "lucid" });
-    await user.click(screen.getByRole("button", { name: /show answer/i }));
-    expect(
-      screen.getByRole("button", { name: /i knew this/i }),
-    ).toBeInTheDocument();
+      await screen.findByRole("heading", { name: "lucid" });
+      await user.click(screen.getByRole("button", { name: /show answer/i }));
+      expect(
+        screen.getByRole("button", { name: /i knew this/i }),
+      ).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /i knew this/i }));
+      await user.click(screen.getByRole("button", { name: /i knew this/i }));
 
-    expect(await screen.findByRole("heading", { name: "zeal" })).toBeInTheDocument();
-    expect(screen.getByText(/card 2 of 2/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /show answer/i })).toBeInTheDocument();
-    expect(screen.queryByText(/great energy/i)).not.toBeInTheDocument();
-  });
+      expect(
+        screen.getByText(/great! you remembered this word\./i),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /i knew this/i })).toBeDisabled();
+      expect(timeoutCallbacks.length).toBeGreaterThan(0);
+      act(() => {
+        timeoutCallbacks[timeoutCallbacks.length - 1]();
+      });
+      expect(await screen.findByRole("heading", { name: "zeal" })).toBeInTheDocument();
+      expect(screen.getByText(/card 2 of 2/i)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /show answer/i })).toBeInTheDocument();
+      expect(screen.queryByText(/great energy/i)).not.toBeInTheDocument();
+    } finally {
+      setTimeoutSpy.mockRestore();
+    }
+  }, 10000);
 
   it("completes the session and calls onQuit after final card", async () => {
-    const onQuit = vi.fn();
-    const user = userEvent.setup();
-    mockGetBooks.mockResolvedValueOnce([
-      { id: 7, book_name: "Deck", is_default: false },
-    ]);
-    mockGetWordsByBookId.mockResolvedValueOnce([
-      {
-        id: 31,
-        word_text: "abate",
-        meaning: "to lessen",
-        difficulty: 1,
-      },
-    ]);
+    const timeoutCallbacks: Array<() => void> = [];
+    const nativeSetTimeout = window.setTimeout.bind(window);
+    const setTimeoutSpy = vi
+      .spyOn(window, "setTimeout")
+      .mockImplementation((cb: TimerHandler, delay?: number, ...args: unknown[]) => {
+        if (delay === 1000 && typeof cb === "function") {
+          timeoutCallbacks.push(cb);
+          return 1;
+        }
+        return nativeSetTimeout(cb, delay, ...(args as []));
+      });
+    try {
+      const onQuit = vi.fn();
+      const user = userEvent.setup();
+      mockGetBooks.mockResolvedValueOnce([
+        { id: 7, book_name: "Deck", is_default: false },
+      ]);
+      mockGetWordsByBookId.mockResolvedValueOnce([
+        {
+          id: 31,
+          word_text: "abate",
+          meaning: "to lessen",
+          difficulty: 1,
+        },
+      ]);
 
-    render(<Flashcard onQuit={onQuit} />);
+      render(<Flashcard onQuit={onQuit} />);
 
-    await screen.findByRole("heading", { name: "abate" });
-    await user.click(screen.getByRole("button", { name: /show answer/i }));
-    await user.click(screen.getByRole("button", { name: /i didn't know this/i }));
-
-    await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
-  });
+      await screen.findByRole("heading", { name: "abate" });
+      await user.click(screen.getByRole("button", { name: /show answer/i }));
+      await user.click(screen.getByRole("button", { name: /i didn't know this/i }));
+      expect(
+        screen.getByText(/no problem\. you'll see this word again soon\./i),
+      ).toBeInTheDocument();
+      expect(timeoutCallbacks.length).toBeGreaterThan(0);
+      act(() => {
+        timeoutCallbacks[timeoutCallbacks.length - 1]();
+      });
+      await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1), {
+        timeout: 4500,
+      });
+    } finally {
+      setTimeoutSpy.mockRestore();
+    }
+  }, 10000);
 
   it("falls back to local quit when ending a backend session fails", async () => {
     const onQuit = vi.fn();
@@ -208,59 +256,78 @@ describe("Flashcard", () => {
   });
 
   it("shows ending state (not no-words state) while backend session is completing", async () => {
-    const onQuit = vi.fn();
-    const user = userEvent.setup();
-    let resolveEndSession: ((value: {
-      session_id: number;
-      duration_seconds: number;
-      total: number;
-      correct: number;
-      accuracy: number;
-    }) => void) | null = null;
+    const timeoutCallbacks: Array<() => void> = [];
+    const nativeSetTimeout = window.setTimeout.bind(window);
+    const setTimeoutSpy = vi
+      .spyOn(window, "setTimeout")
+      .mockImplementation((cb: TimerHandler, delay?: number, ...args: unknown[]) => {
+        if (delay === 1000 && typeof cb === "function") {
+          timeoutCallbacks.push(cb);
+          return 1;
+        }
+        return nativeSetTimeout(cb, delay, ...(args as []));
+      });
+    try {
+      const onQuit = vi.fn();
+      const user = userEvent.setup();
+      let resolveEndSession: ((value: {
+        session_id: number;
+        duration_seconds: number;
+        total: number;
+        correct: number;
+        accuracy: number;
+      }) => void) | null = null;
 
-    mockGetWordsByBookId.mockResolvedValueOnce([
-      { id: 10, word_text: "abate", meaning: "to lessen", difficulty: 2 },
-    ]);
-    mockAnswerReviewWord.mockResolvedValueOnce({
-      user_word_id: 10,
-      word_text: "abate",
-      is_correct: true,
-      pre_ease_factor: 1,
-      post_ease_factor: 2,
-      next_review_time: "2026-03-03T00:00:00Z",
-    });
-    mockEndReviewSession.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          resolveEndSession = resolve;
-        }),
-    );
+      mockGetWordsByBookId.mockResolvedValueOnce([
+        { id: 10, word_text: "abate", meaning: "to lessen", difficulty: 2 },
+      ]);
+      mockAnswerReviewWord.mockResolvedValueOnce({
+        user_word_id: 10,
+        word_text: "abate",
+        is_correct: true,
+        pre_ease_factor: 1,
+        post_ease_factor: 2,
+        next_review_time: "2026-03-03T00:00:00Z",
+      });
+      mockEndReviewSession.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveEndSession = resolve;
+          }),
+      );
 
-    render(
-      <Flashcard
-        onQuit={onQuit}
-        sessionId={12}
-        bookId={2}
-        sessionWords={[{ user_word_id: 10, word_text: "abate", meaning: "to lessen" }]}
-      />,
-    );
+      render(
+        <Flashcard
+          onQuit={onQuit}
+          sessionId={12}
+          bookId={2}
+          sessionWords={[{ user_word_id: 10, word_text: "abate", meaning: "to lessen" }]}
+        />,
+      );
 
-    await screen.findByRole("heading", { name: /abate/i });
-    await user.click(screen.getByRole("button", { name: /show answer/i }));
-    await user.click(screen.getByRole("button", { name: /i knew this/i }));
+      await screen.findByRole("heading", { name: /abate/i });
+      await user.click(screen.getByRole("button", { name: /show answer/i }));
+      await user.click(screen.getByRole("button", { name: /i knew this/i }));
+      expect(timeoutCallbacks.length).toBeGreaterThan(0);
+      act(() => {
+        timeoutCallbacks[timeoutCallbacks.length - 1]();
+      });
 
-    expect(await screen.findByText(/ending session/i)).toBeInTheDocument();
-    expect(screen.queryByText(/no words to review/i)).not.toBeInTheDocument();
-    expect(onQuit).not.toHaveBeenCalled();
+      expect(await screen.findByText(/ending session/i)).toBeInTheDocument();
+      expect(screen.queryByText(/no words to review/i)).not.toBeInTheDocument();
+      expect(onQuit).not.toHaveBeenCalled();
 
-    resolveEndSession?.({
-      session_id: 12,
-      duration_seconds: 15,
-      total: 1,
-      correct: 1,
-      accuracy: 1,
-    });
+      resolveEndSession?.({
+        session_id: 12,
+        duration_seconds: 15,
+        total: 1,
+        correct: 1,
+        accuracy: 1,
+      });
 
-    await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
-  });
+      await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
+    } finally {
+      setTimeoutSpy.mockRestore();
+    }
+  }, 10000);
 });
