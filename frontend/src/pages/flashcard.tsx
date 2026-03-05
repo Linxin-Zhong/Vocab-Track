@@ -152,7 +152,7 @@ export function Flashcard({
     return () => {
       clearFeedbackTimeout();
     };
-  }, []);
+  }, [clearFeedbackTimeout]);
 
   const enrichSessionWordsWithExamples = useCallback(
     async (rawSessionWords: ReviewSessionWord[]): Promise<StudyWord[]> => {
