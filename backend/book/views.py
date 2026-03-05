@@ -1,6 +1,7 @@
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
 from django.db.models import Q
 from django.db import transaction
 from word.models import Word
@@ -10,6 +11,7 @@ from .serializers import (
     BookSerializer,
     BookWordCreateSerializer,
     BookWordUpdateSerializer,
+    FileUploadSerializer,
 )
 
 
@@ -92,14 +94,35 @@ class BookWordViewSet(GenericViewSet):
 
     @transaction.atomic
     def create(self, request, book_pk=None):
-        serializer = BookWordCreateSerializer(data=request.data, many=True)
-        serializer.is_valid(raise_exception=True)
+        # Check if file upload or JSON array
+        if "file" in request.FILES:
+            # Handle file upload
+            try:
+                file_serializer = FileUploadSerializer(data=request.data)
+                file_serializer.is_valid(raise_exception=True)
+            except ValidationError as e:
+                # Convert field errors to detail format
+                error_detail = e.detail.get("file", str(e.detail))
+                if isinstance(error_detail, list):
+                    error_detail = error_detail[0]
+                return Response({"detail": error_detail}, status=400)
+
+            # Parse the file to get word data
+            words_data = file_serializer.parse_file()
+
+            # Validate words data with BookWordCreateSerializer
+            serializer = BookWordCreateSerializer(data=words_data, many=True)
+            serializer.is_valid(raise_exception=True)
+        else:
+            # Handle JSON array (existing functionality)
+            serializer = BookWordCreateSerializer(data=request.data, many=True)
+            serializer.is_valid(raise_exception=True)
 
         # Ensure the book exists
         try:
             book = Book.objects.get(id=book_pk)
         except Book.DoesNotExist:
-            return Response({"detail": "Not found."}, status=404)
+            return Response({"detail": "Book Not found."}, status=404)
 
         # Disallow adding BookWords to default (official) books or books
         # not owned by the requesting user
@@ -155,7 +178,7 @@ class BookWordViewSet(GenericViewSet):
         try:
             book_word = BookWord.objects.get(id=pk, book=book_pk)
         except BookWord.DoesNotExist:
-            return Response({"detail": "Not found."}, status=404)
+            return Response({"detail": "BookWord Not found."}, status=404)
 
         # Disallow editing entries in default (official) books or books
         # not owned by the requesting user
@@ -184,7 +207,7 @@ class BookWordViewSet(GenericViewSet):
         try:
             book_word = BookWord.objects.get(id=pk, book=book_pk)
         except BookWord.DoesNotExist:
-            return Response({"detail": "Not found."}, status=404)
+            return Response({"detail": "BookWord Not found."}, status=404)
 
         parent_book = book_word.book
         if parent_book.user is None:
