@@ -84,7 +84,7 @@ Notes:
 Backend tests run in `Backend Tests` workflow:
 - Triggers: pull requests and pushes to `main` when `backend/**` or `.github/workflows/backend-tests.yml` changes
 - Manual run: Actions -> `Backend Tests` -> `Run workflow`
-- Artifact: `backend-coverage-html` (download and open `index.html`)
+- Artifact: `backend-coverage-html` (after downloading, extract and open `backend/htmlcov/index.html`)
 
 ## Notes and tips
 - To reset a local database (dangerous, destructive):
