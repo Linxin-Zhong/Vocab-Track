@@ -56,7 +56,7 @@ npx vitest run --coverage
 
 Coverage requires the Vitest V8 coverage plugin:
 ```bash
-npm install -D @vitest/coverage-v8@3.2.4
+npm install -D @vitest/coverage-v8
 ```
 
 Tests are colocated with source files under `frontend/src/`:
