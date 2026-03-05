@@ -1,0 +1,55 @@
+name: Backend Tests
+run-name: >-
+  Backend Tests — ${{
+    github.event_name == 'pull_request' && format('PR #{0}', github.event.pull_request.number) ||
+    (github.event_name == 'push' && github.ref == 'refs/heads/main' && format('main ({0})', github.sha)) ||
+    format('manual ({0})', github.ref_name)
+  }}
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-tests.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-tests.yml"
+
+jobs:
+  test-backend:
+    name: Django + Coverage
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt coverage
+
+      - name: Run Django tests with coverage
+        run: |
+          coverage run manage.py test
+          coverage report --show-missing
+          coverage html
+
+      - name: Upload coverage HTML artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-html
+          path: backend/htmlcov/

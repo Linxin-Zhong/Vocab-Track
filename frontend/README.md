@@ -49,15 +49,31 @@ Run specific test files:
 npm run test:run -- src/services/bookService.test.ts src/pages/flashcard.test.tsx
 ```
 
+Run all tests with coverage report:
+```bash
+npx vitest run --coverage
+```
+
+Coverage requires the Vitest V8 coverage plugin:
+```bash
+npm install -D @vitest/coverage-v8@3.2.4
+```
+
 Tests are colocated with source files under `frontend/src/`:
+For pages:
+- `src/pages/dashboard.test.tsx`
 - `src/pages/starting_page.test.tsx`
 - `src/pages/login_page.test.tsx`
 - `src/pages/flashcard.test.tsx`
+- `src/pages/session_summary.test.tsx`
+For services:
 - `src/services/authService.test.ts`
 - `src/services/bookService.test.ts`
+- `src/services/reviewService.test.ts`
 
 ## CI
 Frontend tests run in GitHub Actions via the `Frontend Tests` workflow.
 - Triggers: pull requests and pushes to `main` (only when `frontend/**` or the workflow file changes)
 - Manual runs: available via Actions → `Frontend Tests` (requires the workflow to be on `main`)
-- Command used: `npm run test:run`
+- Command used: `npm run test:run -- --coverage --coverage.reporter=text --coverage.reporter=html`
+- Artifact: `frontend-coverage-html` (download and open `coverage/index.html`)
