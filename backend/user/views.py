@@ -19,7 +19,19 @@ class UserListCreateView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            errors = serializer.errors
+            # Convert validation errors to a single message string
+            error_messages = []
+            for field, messages in errors.items():
+                if isinstance(messages, list):
+                    error_messages.extend([f"{field}: {msg}" for msg in messages])
+                else:
+                    error_messages.append(f"{field}: {messages}")
+            return Response(
+                {"message": "; ".join(error_messages)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         # Save the new user and return an auth token so clients can
         # authenticate immediately after registration. Return the new
         # user's public data to the client (no password or sensitive data).
@@ -47,8 +59,16 @@ class LoginView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = LoginSerializer(data=request.data, context={"request": request})
         if not serializer.is_valid():
+            errors = serializer.errors
+            # Convert validation errors to a single message string
+            error_messages = []
+            for field, messages in errors.items():
+                if isinstance(messages, list):
+                    error_messages.extend([f"{field}: {msg}" for msg in messages])
+                else:
+                    error_messages.append(f"{field}: {messages}")
             return Response(
-                {"message": serializer.errors["non_field_errors"][0]},
+                {"message": "; ".join(error_messages)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         user = serializer.validated_data["user"]
