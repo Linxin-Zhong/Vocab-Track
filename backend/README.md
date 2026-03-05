@@ -70,7 +70,7 @@ Run tests with coverage and generate HTML report:
 
 ```bash
 pip install coverage
-coverage run manage.py test
+coverage run --source=. manage.py test
 coverage report --show-missing
 coverage html
 open htmlcov/index.html   # macOS
