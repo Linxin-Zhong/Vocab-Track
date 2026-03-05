@@ -23,6 +23,7 @@ const mockEndReviewSession = vi.mocked(endReviewSession);
 describe("Flashcard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it("shows loading first and then renders no words state when no books", async () => {
@@ -154,7 +155,17 @@ describe("Flashcard", () => {
 
     await user.click(screen.getByRole("button", { name: /i knew this/i }));
 
-    expect(await screen.findByRole("heading", { name: "zeal" })).toBeInTheDocument();
+    expect(
+      screen.getByText(/great! you remembered this word\./i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /i knew this/i })).toBeDisabled();
+    await waitFor(
+      () =>
+        expect(
+          screen.getByRole("heading", { name: "zeal" }),
+        ).toBeInTheDocument(),
+      { timeout: 2000 },
+    );
     expect(screen.getByText(/card 2 of 2/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /show answer/i })).toBeInTheDocument();
     expect(screen.queryByText(/great energy/i)).not.toBeInTheDocument();
@@ -180,8 +191,12 @@ describe("Flashcard", () => {
     await screen.findByRole("heading", { name: "abate" });
     await user.click(screen.getByRole("button", { name: /show answer/i }));
     await user.click(screen.getByRole("button", { name: /i didn't know this/i }));
-
-    await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
+    expect(
+      screen.getByText(/no problem\. you'll see this word again soon\./i),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1), {
+      timeout: 2500,
+    });
   });
 
   it("falls back to local quit when ending a backend session fails", async () => {
@@ -249,7 +264,7 @@ describe("Flashcard", () => {
     await user.click(screen.getByRole("button", { name: /show answer/i }));
     await user.click(screen.getByRole("button", { name: /i knew this/i }));
 
-    expect(await screen.findByText(/ending session/i)).toBeInTheDocument();
+    expect(await screen.findByText(/ending session/i, {}, { timeout: 2500 })).toBeInTheDocument();
     expect(screen.queryByText(/no words to review/i)).not.toBeInTheDocument();
     expect(onQuit).not.toHaveBeenCalled();
 
