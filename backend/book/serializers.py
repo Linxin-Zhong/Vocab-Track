@@ -6,10 +6,14 @@ from .models import Book, BookWord
 
 class BookSerializer(serializers.ModelSerializer):
     is_default = serializers.ReadOnlyField()
+    words_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Book
-        fields = ["id", "book_name", "is_default"]
+        fields = ["id", "book_name", "is_default", "words_count"]
+
+    def get_words_count(self, obj):
+        return BookWord.objects.filter(book=obj).count()
 
 
 class BookWordSerializer(serializers.ModelSerializer):
