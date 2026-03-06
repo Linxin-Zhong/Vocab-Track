@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from api.utils import format_serializer_errors
 
 from review.models import UserWord, ReviewSession, ReviewItem
 from book.models import BookWord, Book
@@ -20,7 +21,11 @@ class ReviewStartView(APIView):
 
     def post(self, request):
         serializer = ReviewStartSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return Response(
+                {"message": format_serializer_errors(serializer.errors)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         book_id = serializer.validated_data["book_id"]
         limit = serializer.validated_data["limit"]
@@ -33,12 +38,12 @@ class ReviewStartView(APIView):
                 Q(user=user) | Q(user__isnull=True),
             )
         except Book.DoesNotExist:
-            return Response({"detail": "book not found"}, status=404)
+            return Response({"message": "book not found"}, status=404)
 
         # verify book has words
         book_word = list(BookWord.objects.filter(book=book))
         if not book_word:
-            return Response({"detail": "book has no words"}, status=200)
+            return Response({"message": "book has no words"}, status=200)
 
         # create UserWord entries for all BookWords in the book if not exist
         with transaction.atomic():
@@ -82,7 +87,7 @@ class ReviewStartView(APIView):
         )
 
         if not user_word.exists():
-            return Response({"detail": "no words to review"}, status=200)
+            return Response({"message": "no words to review"}, status=200)
 
         session = ReviewSession.objects.create(
             user=user,
@@ -114,7 +119,11 @@ class ReviewAnswerView(APIView):
 
     def post(self, request):
         serializer = ReviewAnswerSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return Response(
+                {"message": format_serializer_errors(serializer.errors)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         user = request.user
         session_id = serializer.validated_data["session_id"]
@@ -125,7 +134,7 @@ class ReviewAnswerView(APIView):
             session = ReviewSession.objects.get(id=session_id, user=user)
         except ReviewSession.DoesNotExist:
             return Response(
-                {"detail": "session not found"},
+                {"message": "session not found"},
                 status=status.HTTP_404_NOT_FOUND,
             )
         try:
@@ -137,13 +146,13 @@ class ReviewAnswerView(APIView):
             )
         except UserWord.DoesNotExist:
             return Response(
-                {"detail": "user word not found for this session"},
+                {"message": "user word not found for this session"},
                 status=status.HTTP_404_NOT_FOUND,
             )
         # Prevent answering the same word multiple times in a single session.
         if ReviewItem.objects.filter(session=session, user_word=user_word).exists():
             return Response(
-                {"detail": "this word has already been answered in this session"},
+                {"message": "this word has already been answered in this session"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -177,7 +186,7 @@ class ReviewAnswerView(APIView):
                 )
         except IntegrityError:
             return Response(
-                {"detail": "this word has already been answered in this session"},
+                {"message": "this word has already been answered in this session"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -199,7 +208,11 @@ class ReviewEndView(APIView):
 
     def post(self, request):
         serializer = ReviewEndSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return Response(
+                {"message": format_serializer_errors(serializer.errors)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         session_id = serializer.validated_data["session_id"]
         user = request.user
@@ -208,7 +221,7 @@ class ReviewEndView(APIView):
             session = ReviewSession.objects.get(id=session_id, user=user)
         except ReviewSession.DoesNotExist:
             return Response(
-                {"detail": "session not found"}, status=status.HTTP_404_NOT_FOUND
+                {"message": "session not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
         items = ReviewItem.objects.filter(session=session)

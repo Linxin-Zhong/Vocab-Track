@@ -1,15 +1,18 @@
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
 from django.db.models import Q
 from django.db import transaction
 from word.models import Word
+from api.utils import format_serializer_errors
 from .models import Book, BookWord
 from .serializers import (
     BookWordSerializer,
     BookSerializer,
     BookWordCreateSerializer,
     BookWordUpdateSerializer,
+    FileUploadSerializer,
 )
 
 
@@ -37,7 +40,7 @@ class BookViewSet(ModelViewSet):
         instance = self.get_object()
         if instance.user is None:
             return Response(
-                {"detail": "Cannot modify default (official) books."}, status=403
+                {"message": "Cannot modify default (official) books."}, status=403
             )
         return super().update(request, *args, **kwargs)
 
@@ -46,7 +49,7 @@ class BookViewSet(ModelViewSet):
         instance = self.get_object()
         if instance.user is None:
             return Response(
-                {"detail": "Cannot modify default (official) books."}, status=403
+                {"message": "Cannot modify default (official) books."}, status=403
             )
         return super().partial_update(request, *args, **kwargs)
 
@@ -55,12 +58,14 @@ class BookViewSet(ModelViewSet):
         instance = self.get_object()
         if instance.user is None:
             return Response(
-                {"detail": "Cannot delete default (official) books."}, status=403
+                {"message": "Cannot delete default (official) books."}, status=403
             )
         # delete and return a readable success message
         book_name = instance.book_name
         instance.delete()
-        return Response({"detail": f"delete {book_name} success"}, status=200)
+        return Response(
+            {"message": f"Successfully deleted book '{book_name}'"}, status=200
+        )
 
 
 class BookWordViewSet(GenericViewSet):
@@ -92,26 +97,55 @@ class BookWordViewSet(GenericViewSet):
 
     @transaction.atomic
     def create(self, request, book_pk=None):
-        serializer = BookWordCreateSerializer(data=request.data, many=True)
-        serializer.is_valid(raise_exception=True)
+        # Check if file upload or JSON array
+        if "file" in request.FILES:
+            # Handle file upload
+            try:
+                file_serializer = FileUploadSerializer(data=request.data)
+                file_serializer.is_valid(raise_exception=True)
+            except ValidationError as e:
+                # Convert field errors to message format
+                error_detail = e.detail.get("file", str(e.detail))
+                if isinstance(error_detail, list):
+                    error_detail = error_detail[0]
+                return Response({"message": error_detail}, status=400)
+
+            # Parse the file to get word data
+            words_data = file_serializer.parse_file()
+
+            # Validate words data with BookWordCreateSerializer
+            serializer = BookWordCreateSerializer(data=words_data, many=True)
+            if not serializer.is_valid():
+                return Response(
+                    {"message": format_serializer_errors(serializer.errors)},
+                    status=400,
+                )
+        else:
+            # Handle JSON array (existing functionality)
+            serializer = BookWordCreateSerializer(data=request.data, many=True)
+            if not serializer.is_valid():
+                return Response(
+                    {"message": format_serializer_errors(serializer.errors)},
+                    status=400,
+                )
 
         # Ensure the book exists
         try:
             book = Book.objects.get(id=book_pk)
         except Book.DoesNotExist:
-            return Response({"detail": "Not found."}, status=404)
+            return Response({"message": "Book not found."}, status=404)
 
         # Disallow adding BookWords to default (official) books or books
         # not owned by the requesting user
         if book.user is None:
             return Response(
-                {"detail": "Cannot add BookWords to default (official) books."},
+                {"message": "Cannot add words to default (official) books."},
                 status=403,
             )
 
         if book.user != request.user:
             return Response(
-                {"detail": "You do not have permission to add words to this book."},
+                {"message": "You do not have permission to add words to this book."},
                 status=403,
             )
 
@@ -142,63 +176,82 @@ class BookWordViewSet(GenericViewSet):
                     }
                 )
 
+        if not created:
+            return Response(
+                {
+                    "message": "No words were created. Check for duplicates or validation errors.",
+                    "failed": failed,
+                },
+                status=400,
+            )
+
         response_data = {
+            "message": "Words added successfully.",
             "created": BookWordSerializer(created, many=True).data,
             "failed": failed,
         }
-
-        status_code = 201 if created else 400
-        return Response(response_data, status=status_code)
+        return Response(response_data, status=201)
 
     def update(self, request, pk=None, book_pk=None):
         # Find the BookWord; return 404 if missing
         try:
             book_word = BookWord.objects.get(id=pk, book=book_pk)
         except BookWord.DoesNotExist:
-            return Response({"detail": "Not found."}, status=404)
+            return Response({"message": "BookWord not found."}, status=404)
 
         # Disallow editing entries in default (official) books or books
         # not owned by the requesting user
         parent_book = book_word.book
         if parent_book.user is None:
             return Response(
-                {"detail": "Cannot modify BookWord in default (official) books."},
+                {"message": "Cannot modify words in default (official) books."},
                 status=403,
             )
         if parent_book.user != request.user:
             return Response(
-                {"detail": "You do not have permission to modify words in this book."},
+                {"message": "You do not have permission to modify words in this book."},
                 status=403,
             )
 
         serializer = BookWordUpdateSerializer(
             book_word, data=request.data, partial=True
         )
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return Response(
+                {"message": format_serializer_errors(serializer.errors)},
+                status=400,
+            )
         serializer.save()
 
-        return Response(BookWordSerializer(book_word).data)
+        return Response(
+            {
+                "message": "Word updated successfully.",
+                "word": BookWordSerializer(book_word).data,
+            }
+        )
 
     def destroy(self, request, pk=None, book_pk=None):
         # Find the BookWord; return 404 if missing
         try:
             book_word = BookWord.objects.get(id=pk, book=book_pk)
         except BookWord.DoesNotExist:
-            return Response({"detail": "Not found."}, status=404)
+            return Response({"message": "BookWord not found."}, status=404)
 
         parent_book = book_word.book
         if parent_book.user is None:
             return Response(
-                {"detail": "Cannot delete BookWord from default (official) books."},
+                {"message": "Cannot delete words from default (official) books."},
                 status=403,
             )
         if parent_book.user != request.user:
             return Response(
                 {
-                    "detail": "You do not have permission to delete words from this book."
+                    "message": "You do not have permission to delete words from this book."
                 },
                 status=403,
             )
         word_text = book_word.word.word_text
         book_word.delete()
-        return Response({"detail": f"delete {word_text} success"}, status=200)
+        return Response(
+            {"message": f"Successfully deleted word '{word_text}'"}, status=200
+        )

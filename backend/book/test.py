@@ -391,7 +391,7 @@ class BookViewSetTest(APITestCase):
         data = {"book_name": "Modified Default"}
         response = self.client.put(f"/book/{self.default_book.id}/", data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn("Cannot modify", response.data["detail"])
+        self.assertIn("Cannot modify", response.data["message"])
 
     def test_partial_update_own_book(self):
         """Test partially updating own book"""
@@ -422,7 +422,7 @@ class BookViewSetTest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token1.key)
         response = self.client.delete(f"/book/{self.default_book.id}/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn("Cannot delete", response.data["detail"])
+        self.assertIn("Cannot delete", response.data["message"])
         # Verify it still exists
         self.assertTrue(Book.objects.filter(id=self.default_book.id).exists())
 
@@ -438,7 +438,7 @@ class BookViewSetTest(APITestCase):
         book = Book.objects.create(user=self.user1, book_name="My Book")
         response = self.client.delete(f"/book/{book.id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("delete My Book success", response.data["detail"])
+        self.assertIn("Successfully deleted book", response.data["message"])
 
 
 class BookWordViewSetTest(APITestCase):
@@ -606,7 +606,7 @@ class BookWordViewSetTest(APITestCase):
             f"/book/{self.default_book.id}/word/", data, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn("Cannot add BookWords to default", response.data["detail"])
+        self.assertIn("Cannot add", response.data["message"])
 
     def test_create_book_word_in_other_user_book_fails(self):
         """Test that user cannot add words to other user's book"""
@@ -618,7 +618,7 @@ class BookWordViewSetTest(APITestCase):
             f"/book/{self.user2_book.id}/word/", data, format="json"
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn("do not have permission", response.data["detail"])
+        self.assertIn("do not have permission", response.data["message"])
 
     def test_create_mixed_valid_invalid_words(self):
         """Test creating mix of valid and invalid words"""
