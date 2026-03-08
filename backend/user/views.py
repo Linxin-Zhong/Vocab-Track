@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import RegisterSerializer, UserSerializer, LoginSerializer
 from .models import User
 from rest_framework.authtoken.models import Token
+from api.utils import format_serializer_errors
 
 
 class UserListCreateView(generics.ListCreateAPIView):
@@ -19,7 +20,11 @@ class UserListCreateView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return Response(
+                {"message": format_serializer_errors(serializer.errors)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         # Save the new user and return an auth token so clients can
         # authenticate immediately after registration. Return the new
         # user's public data to the client (no password or sensitive data).
@@ -48,7 +53,7 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data, context={"request": request})
         if not serializer.is_valid():
             return Response(
-                {"message": serializer.errors["non_field_errors"][0]},
+                {"message": format_serializer_errors(serializer.errors)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         user = serializer.validated_data["user"]
