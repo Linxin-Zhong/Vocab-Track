@@ -18,7 +18,7 @@ import {
   type ProgressPayload,
   type WordPerformanceRow,
 } from "../services/progressService";
-import "./progress.css";
+import "./progress_page.css";
 
 type DictionaryOption = {
   key: DictionaryKey;

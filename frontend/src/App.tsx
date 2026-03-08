@@ -7,8 +7,9 @@ import { Dashboard } from "./pages/dashboard";
 import { AuthError } from "./types/auth";
 import { Flashcard } from "./pages/flashcard";
 import { SessionSummary } from "./pages/session_summary";
-import { ProgressPage } from "./pages/ProgressPage";
-import { getBooks } from "./services/bookService";
+import { ProgressPage } from "./pages/progress_page";
+import { DictionariesPage } from "./pages/dictionaries_page";
+import { getBooks, type Book } from "./services/bookService";
 import {
   startReviewSession,
   type ReviewSessionWord,
@@ -19,6 +20,7 @@ type Screen =
   | "signup"
   | "dashboard"
   | "progress"
+  | "dictionaries"
   | "flashcard"
   | "summary";
 type ActiveSession = {
@@ -95,6 +97,7 @@ export default function App() {
   const [startSessionError, setStartSessionError] = useState<string | null>(null);
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   const [currentBookId, setCurrentBookId] = useState<number | null>(null);
+  const [bookList, setBookList] = useState<Book[]>([]);
 
   const navigateTo = (screen: Screen) => {
     setCurrentScreen(screen);
@@ -202,6 +205,12 @@ export default function App() {
           throw new AuthError("UNKNOWN", "Unknown error");
       }
     }
+    const books = await getBooks();
+    if (!books.length) {
+        throw new Error("No books available");
+      }
+
+      setBookList(books);
   };
 
   const handleRegister = async (email: string, password: string) => {
@@ -262,7 +271,6 @@ export default function App() {
       if (!books.length) {
         throw new Error("No books available");
       }
-
       const selectedBook = books.find((book) => !book.is_default) ?? books[0];
       selectedBookId = selectedBook.id;
       const startedSession = await startReviewSession(
@@ -299,7 +307,7 @@ export default function App() {
   };
 
   const showTopNav =
-    currentScreen === "dashboard" || currentScreen === "progress";
+    currentScreen === "dashboard" || currentScreen === "progress" || currentScreen === "dictionaries";
 
   return (
     <div className="app-shell">
@@ -326,6 +334,15 @@ export default function App() {
               >
                 Progress
               </button>
+              <button
+                type="button"
+                className={`top-nav-link ${
+                  currentScreen === "dictionaries" ? "is-active" : ""
+                }`}
+                onClick={() => navigateTo("dictionaries")}
+              >
+                Dictionaries
+              </button>
             </nav>
             <button type="button" className="top-nav-link" onClick={handleLogout}>
               Log out
@@ -350,6 +367,7 @@ export default function App() {
         />
       )}
       {currentScreen === "progress" && <ProgressPage />}
+      {currentScreen === "dictionaries" && <DictionariesPage selectedBookId={activeSession?.book_id ?? currentBookId} books={bookList} />}
       {currentScreen === "flashcard" && (
         <Flashcard
           onQuit={handleFlashcardQuit}
