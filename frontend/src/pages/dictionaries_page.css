@@ -1,0 +1,165 @@
+.page-container {
+  min-height: 100vh;
+  background-color: #f9fafb; /* bg-neutral-50 */
+}
+
+.page-content {
+  max-width: 80rem; /* max-w-5xl */
+  margin: 0 auto;
+  padding: 0.5rem 1.5rem; /* px-8 py-12 */
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem; /* space-y-10 */
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem; /* space-y-1 */
+}
+
+.page-title {
+  font-size: 2.5rem; /* text-3xl */
+  color: #111827; /* text-neutral-900 */
+}
+
+.page-subtitle {
+  color: #6b7280; /* text-neutral-500 */
+}
+
+/* Dictionary grid */
+.dictionary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem; /* gap-6 */
+}
+
+/* Dictionary card */
+.dictionary-card {
+  background-color: white;
+  border-radius: 1rem; /* rounded-2xl */
+  padding: 1rem; /* p-8 */
+  border: 2px solid #e5e7eb; /* border-neutral-200 */
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem; /* space-y-5 */
+  transition: all 0.2s;
+}
+
+.dictionary-card:hover {
+  border-color: #d1d5db; /* hover:border-neutral-300 */
+}
+
+.dictionary-card.selected {
+  border-color: #111827; /* border-neutral-900 */
+}
+
+/* Card header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* space-y-2 */
+}
+
+.card-name {
+  color: #111827; /* text-neutral-900 */
+  font-size: 1.3rem; /* text-lg */
+}
+
+.card-description {
+  font-size: 0.875rem; /* text-sm */
+  color: #6b7280; /* text-neutral-500 */
+}
+
+.card-check {
+  margin-left: 1rem;
+  margin-top: 0.125rem; /* mt-0.5 */
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.check-icon {
+  color: white;
+}
+
+/* Card footer */
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.5rem; /* pt-2 */
+  border-top: 1px solid #f3f4f6; /* border-t border-neutral-100 */
+}
+
+.word-count {
+  font-size: 0.875rem; /* text-sm */
+  color: #6b7280; /* text-neutral-500 */
+}
+
+/* Buttons */
+.select-button {
+  padding: 0.5rem 1.25rem; /* px-5 py-2 */
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.select-button.selected-btn {
+  background-color: #111827;
+  color: white;
+}
+
+.select-button:not(.selected-btn) {
+  background-color: white;
+  border: 1px solid #d1d5db;
+  color: #374151; /* text-neutral-700 */
+}
+
+.select-button:not(.selected-btn):hover {
+  border-color: #6b7280;
+}
+
+/* Selected confirmation */
+.selected-confirmation {
+  background-color: #f3f4f6; /* bg-neutral-100 */
+  border-radius: 1rem;
+  padding: 1.25rem 2rem; /* px-8 py-5 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.active-dictionary {
+  font-size: 0.875rem; /* text-sm */
+  color: #4b5563; /* text-neutral-600 */
+}
+
+.dictionary-name {
+  color: #111827;
+}
+
+.start-button {
+  padding: 0.75rem 1.5rem; /* px-6 py-3 */
+  background-color: #111827;
+  color: white;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.start-button:hover {
+  background-color: #1f2937; /* slightly lighter on hover */
+}
