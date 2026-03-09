@@ -289,7 +289,7 @@ class BookWordDetailSerializer(serializers.ModelSerializer):
         ).order_by("create_time")
         review_history = [
             {
-                "date": item.create_time.date().isoformat(),
+                "date": item.create_time.date(),
                 "result": "correct" if item.is_correct else "incorrect",
             }
             for item in review_items
