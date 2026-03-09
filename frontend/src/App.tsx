@@ -134,7 +134,6 @@ export default function App() {
 
   const clearActiveSession = (userEmail: string | null = currentUserEmail) => {
     setActiveSession(null);
-    setCurrentBookId(null);
     persistActiveSession(userEmail, null);
   };
 
@@ -286,23 +285,20 @@ export default function App() {
   const handleStartSession = async () => {
     setStartSessionError(null);
     setStartSessionLoading(true);
-    let selectedBookId: number | null = null;
 
     try {
       const books = await getBooks();
       if (!books.length) {
         throw new Error("No books available");
       }
-      const selectedBook = books.find((book) => !book.is_default) ?? books[0];
-      selectedBookId = selectedBook.id;
       const startedSession = await startReviewSession(
-        selectedBook.id,
+        currentBookId? currentBookId : books[0].id,
         DEFAULT_REVIEW_LIMIT,
       );
 
       const nextSession: ActiveSession = {
         session_id: startedSession.session_id,
-        book_id: selectedBook.id,
+        book_id: currentBookId? currentBookId : books[0].id,
         words: startedSession.words,
       };
 
@@ -318,7 +314,6 @@ export default function App() {
         // - No backend review session is created in this flow.
         // - Flashcard page runs in local/non-session mode for continuous practice only.
         clearActiveSession(currentUserEmail);
-        setCurrentBookId(selectedBookId);
         navigateTo("flashcard");
       } else {
         setStartSessionError(
