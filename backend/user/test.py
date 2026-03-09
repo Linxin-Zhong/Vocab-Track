@@ -207,7 +207,7 @@ class UserSerializerTest(TestCase):
 
         serializer = UserSerializer(self.user)
         data = serializer.data
-        self.assertEqual(set(data.keys()), {"id", "email", "user_name", "create_time"})
+        self.assertEqual(set(data.keys()), {"id", "email", "user_name", "create_time", "selected_book_id"})
 
     def test_user_serializer_id_is_read_only(self):
         """Test that id is read-only"""
