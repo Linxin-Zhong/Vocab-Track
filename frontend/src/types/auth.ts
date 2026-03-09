@@ -1,6 +1,8 @@
 export interface User {
+  id: number;
   email: string;
   username: string;
+  selected_book_id: number | null;
 }
 
 export interface AuthResponse {
