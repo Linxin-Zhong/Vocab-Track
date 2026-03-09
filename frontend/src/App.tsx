@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import "./App.css";
 import { StartingPage } from "./pages/starting_page";
 import { LoginPage } from "./pages/login_page";
@@ -101,7 +101,7 @@ export default function App() {
     null,
   );
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const currentUserId = useRef<number | null>(null);
   const [currentBookId, setCurrentBookId] = useState<number | null>(null);
   const [bookList, setBookList] = useState<Book[]>([]);
 
@@ -188,8 +188,8 @@ export default function App() {
     if (res.success) {
       // TODO: set up user & implement dashboard UI
       const userEmail = res.user.email;
-      const userId = res.user.id;
       const selectedBookId = res.user.selected_book_id;
+      currentUserId.current = res.user.id;
       // NOTE: Backend-driven auto-resume of unfinished review sessions on login
       // is disabled until we can safely restore full progress (current index,
       // answered words, counts) from the backend to avoid resubmitting
@@ -197,7 +197,6 @@ export default function App() {
       // and may restore them in limited flows (e.g. registration) as a temporary
       // UX aid until full resume support is implemented.
       setCurrentUserEmail(userEmail);
-      setCurrentUserId(userId);
       setCurrentBookId(selectedBookId);
       syncTodayReviewedForUser(userEmail);
       navigateTo("dashboard");
@@ -237,11 +236,10 @@ export default function App() {
     if (res.success) {
       // TODO: set up user & implement dashboard UI
       const userEmail = res.user.email;
-      const userId = res.user.id;
+      currentUserId.current = res.user.id;
       // Align behavior with login: do not auto-resume unfinished review sessions
       // until we can safely restore full progress from the backend.
       setCurrentUserEmail(userEmail);
-      setCurrentUserId(userId);
       syncTodayReviewedForUser(userEmail);
       navigateTo("dashboard");
       console.info("register succeeded.");
@@ -270,7 +268,7 @@ export default function App() {
     const res = await logout();
     clearActiveSession(currentUserEmail);
     setCurrentUserEmail(null);
-    setCurrentUserId(null);
+    currentUserId.current = null;
     setTotalReviewed(0);
 
     if (res.success) {
@@ -326,13 +324,13 @@ export default function App() {
   };
 
   const handleChangeBook = async (bookId: number) => {
-    if (!currentUserId) {
+    if (currentUserId.current === null) {
       console.error("Cannot change book: no user ID");
       return;
     } else {
       if (bookId != currentBookId){
         clearActiveSession(currentUserEmail);
-        const res = await changeSelectedBook(currentUserId, bookId);
+        const res = await changeSelectedBook(currentUserId.current, bookId);
       if (res.success) {
         setCurrentBookId(bookId);
         console.log("Changed book successfully");
