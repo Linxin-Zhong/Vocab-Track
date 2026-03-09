@@ -556,14 +556,16 @@ class ReviewAnswerViewTest(APITestCase):
         response = self.client.post("/review/answer/", data)
         after = timezone.now()
         self.user_word.refresh_from_db()
-        # Should be 3 days later
-        expected = before + timedelta(days=3)
+        # With adaptive algorithm: first correct answer should be ~1 day later
+        # (ease_factor=0→1, accuracy=1.0, so interval ≈ 1-2 days)
+        min_expected = before + timedelta(days=1)
+        max_expected = after + timedelta(days=2)
         self.assertGreaterEqual(
-            self.user_word.next_review_time, expected - timedelta(seconds=1)
+            self.user_word.next_review_time, min_expected - timedelta(seconds=1)
         )
         self.assertLessEqual(
             self.user_word.next_review_time,
-            after + timedelta(days=3) + timedelta(seconds=1),
+            max_expected + timedelta(seconds=1),
         )
 
     def test_answer_next_review_time_wrong(self):

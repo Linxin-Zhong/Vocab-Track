@@ -8,6 +8,7 @@ from rest_framework import status
 from api.utils import format_serializer_errors
 
 from review.models import UserWord, ReviewSession, ReviewItem
+from review.algorithm import calculate_adaptive_interval
 from book.models import BookWord, Book
 from review.serializers import (
     ReviewStartSerializer,
@@ -163,20 +164,24 @@ class ReviewAnswerView(APIView):
         now = timezone.now()
         pre_ease_factor = user_word.ease_factor
 
+        # Apply adaptive learning curve algorithm
+        new_ease_factor, next_review_delta = calculate_adaptive_interval(
+            is_correct=is_correct,
+            ease_factor=user_word.ease_factor,
+            correct_times=user_word.correct_times,
+            wrong_times=user_word.wrong_times,
+        )
+
+        # Update user word statistics
+        user_word.ease_factor = new_ease_factor
         if is_correct:
             user_word.correct_times += 1
-            user_word.ease_factor += 1
-            next_review_time = now + timezone.timedelta(days=3)
         else:
             user_word.wrong_times += 1
-            user_word.ease_factor -= 1
-            if user_word.ease_factor < 0:
-                user_word.ease_factor = 0
-            next_review_time = now + timezone.timedelta(days=1)
 
         post_ease_factor = user_word.ease_factor
         user_word.last_time = now
-        user_word.next_review_time = next_review_time
+        user_word.next_review_time = now + next_review_delta
 
         try:
             with transaction.atomic():
@@ -201,7 +206,7 @@ class ReviewAnswerView(APIView):
                 "is_correct": is_correct,
                 "pre_ease_factor": pre_ease_factor,
                 "post_ease_factor": post_ease_factor,
-                "next_review_time": next_review_time,
+                "next_review_time": user_word.next_review_time,
             },
             status=200,
         )
