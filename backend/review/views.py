@@ -72,22 +72,26 @@ class ReviewStartView(APIView):
             if new_user_words:
                 UserWord.objects.bulk_create(new_user_words, ignore_conflicts=True)
 
-        # filter user words that are due for review
-        user_word = (
-            UserWord.objects.filter(
-                user=user,
-                book_word__book=book,
-            )
-            .select_related("book_word__word")
-            .filter(
-                Q(next_review_time__lte=timezone.now())
-                | Q(next_review_time__isnull=True)
-            )
-            .order_by(F("next_review_time").asc(nulls_first=True), "id")[:limit]
-        )
+        # First try words that are due now; if none are due, fall back to the
+        # earliest scheduled words so users can review again immediately.
+        all_user_words = UserWord.objects.filter(
+            user=user,
+            book_word__book=book,
+        ).select_related("book_word__word")
 
-        if not user_word.exists():
+        if not all_user_words.exists():
             return Response({"message": "no words to review"}, status=200)
+
+        due_user_words = all_user_words.filter(
+            Q(next_review_time__lte=timezone.now()) | Q(next_review_time__isnull=True)
+        ).order_by(F("next_review_time").asc(nulls_first=True), "id")[:limit]
+
+        if due_user_words.exists():
+            user_word = due_user_words
+        else:
+            user_word = all_user_words.order_by(
+                F("next_review_time").asc(nulls_last=True), "id"
+            )[:limit]
 
         session = ReviewSession.objects.create(
             user=user,
