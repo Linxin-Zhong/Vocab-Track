@@ -11,6 +11,7 @@ from book.serializers import (
 )
 from word.models import Word
 from user.models import User
+from review.models import UserWord, ReviewSession, ReviewItem
 
 
 class BookModelTest(TestCase):
@@ -163,7 +164,8 @@ class BookSerializerTest(TestCase):
         data = serializer.data
         self.assertEqual(data["book_name"], "User Book")
         self.assertFalse(data["is_default"])
-        self.assertIn("id", data)
+        self.assertIn("book_id", data)
+        self.assertEqual(data["book_id"], self.user_book.id)
 
     def test_serializer_default_book(self):
         """Test BookSerializer with default book"""
@@ -175,7 +177,20 @@ class BookSerializerTest(TestCase):
     def test_serializer_fields(self):
         """Test that serializer contains expected fields"""
         serializer = BookSerializer(self.user_book)
-        self.assertEqual(set(serializer.data.keys()), {"id", "book_name", "is_default"})
+        self.assertEqual(
+            set(serializer.data.keys()),
+            {
+                "book_id",
+                "book_name",
+                "is_default",
+                "words_num",
+                "words_rw_count",
+                "days_active",
+                "avg_accuracy",
+                "rw_trend",
+                "rw_words",
+            },
+        )
 
     def test_serializer_is_default_read_only(self):
         """Test that is_default is read-only"""
@@ -212,7 +227,8 @@ class BookWordSerializerTest(TestCase):
     def test_serializer_fields(self):
         """Test serializer field names"""
         serializer = BookWordSerializer(self.book_word)
-        expected_fields = {"id", "word_text", "meaning", "example", "difficulty"}
+        expected_fields = {"book_word_id", "word_text", "meaning", "example", "difficulty"}
+        self.assertEqual(serializer.data["book_word_id"], self.book_word.id)
         self.assertEqual(set(serializer.data.keys()), expected_fields)
 
     def test_serializer_word_text_read_only(self):
@@ -665,3 +681,71 @@ class BookWordViewSetTest(APITestCase):
         book_word = BookWord.objects.get(word__word_text="test")
         self.assertEqual(book_word.example, "")
         self.assertEqual(book_word.difficulty, 1)
+
+    def test_retrieve_book_word_detail_with_review_stats(self):
+        """Test retrieving nested book word detail including review stats/history."""
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token1.key)
+
+        book_word = BookWord.objects.create(
+            book=self.user1_book,
+            word=self.word1,
+            meaning="greeting",
+            example="hello there",
+            difficulty=2,
+        )
+        user_word = UserWord.objects.create(
+            user=self.user1,
+            book_word=book_word,
+            correct_times=2,
+            wrong_times=1,
+        )
+        session1 = ReviewSession.objects.create(user=self.user1, book=self.user1_book)
+        session2 = ReviewSession.objects.create(user=self.user1, book=self.user1_book)
+        ReviewItem.objects.create(
+            session=session1,
+            user_word=user_word,
+            is_correct=True,
+            pre_ease_factor=0,
+            post_ease_factor=1,
+        )
+        ReviewItem.objects.create(
+            session=session2,
+            user_word=user_word,
+            is_correct=False,
+            pre_ease_factor=1,
+            post_ease_factor=0,
+        )
+
+        response = self.client.get(f"/book/{self.user1_book.id}/word/{book_word.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["book_id"], self.user1_book.id)
+        self.assertEqual(response.data["book_name"], self.user1_book.book_name)
+        self.assertEqual(response.data["book_word_id"], book_word.id)
+        self.assertEqual(response.data["word_text"], "hello")
+        self.assertEqual(response.data["times_reviewed"], 3)
+        self.assertEqual(response.data["correct_times"], 2)
+        self.assertEqual(response.data["incorrect_times"], 1)
+        self.assertEqual(response.data["accuracy"], 0.6667)
+        self.assertEqual(len(response.data["review_history"]), 2)
+        self.assertEqual(response.data["review_history"][0]["result"], "correct")
+        self.assertEqual(response.data["review_history"][1]["result"], "incorrect")
+
+    def test_retrieve_book_word_detail_without_review_stats(self):
+        """Test retrieving nested book word detail before any review."""
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token1.key)
+
+        book_word = BookWord.objects.create(
+            book=self.user1_book,
+            word=self.word1,
+            meaning="greeting",
+        )
+
+        response = self.client.get(f"/book/{self.user1_book.id}/word/{book_word.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["times_reviewed"], 0)
+        self.assertEqual(response.data["correct_times"], 0)
+        self.assertEqual(response.data["incorrect_times"], 0)
+        self.assertEqual(response.data["accuracy"], 0.0)
+        self.assertEqual(response.data["review_history"], [])

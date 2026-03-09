@@ -13,6 +13,7 @@ from .serializers import (
     BookBasicSerializer,
     BookWordCreateSerializer,
     BookWordUpdateSerializer,
+    BookWordDetailSerializer,
     FileUploadSerializer,
 )
 
@@ -89,7 +90,29 @@ class BookWordViewSet(GenericViewSet):
     def get_serializer_class(self):
         if self.action == "create":
             return BookWordCreateSerializer
+        if self.action == "retrieve":
+            return BookWordDetailSerializer
         return BookWordSerializer
+
+    def retrieve(self, request, pk=None, book_pk=None):
+        # Only allow access to the caller's own books and default books.
+        try:
+            book_word = BookWord.objects.select_related("book", "word").get(
+                id=pk,
+                book_id=book_pk,
+            )
+        except BookWord.DoesNotExist:
+            return Response({"message": "BookWord not found."}, status=404)
+
+        parent_book = book_word.book
+        if parent_book.user is not None and parent_book.user != request.user:
+            return Response(
+                {"message": "You do not have permission to view words in this book."},
+                status=403,
+            )
+
+        serializer = self.get_serializer(book_word)
+        return Response(serializer.data)
 
     def list(self, request, book_pk=None):
         # Return all BookWord entries for the specified book which belongs
