@@ -22,7 +22,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "email", "user_name", "create_time"]
+        fields = ["id", "email", "user_name", "create_time", "selected_book_id"]
         read_only_fields = ["id", "create_time"]
 
 

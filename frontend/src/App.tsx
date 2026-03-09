@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import "./App.css";
 import { StartingPage } from "./pages/starting_page";
 import { LoginPage } from "./pages/login_page";
@@ -7,18 +7,21 @@ import { Dashboard } from "./pages/dashboard";
 import { AuthError } from "./types/auth";
 import { Flashcard } from "./pages/flashcard";
 import { SessionSummary } from "./pages/session_summary";
-import { ProgressPage } from "./pages/ProgressPage";
-import { getBooks } from "./services/bookService";
+import { ProgressPage } from "./pages/progress_page";
+import { DictionariesPage } from "./pages/dictionaries_page";
+import { getBooks, type Book } from "./services/bookService";
 import {
   startReviewSession,
   type ReviewSessionWord,
 } from "./services/reviewService";
+import { changeSelectedBook } from "./services/selectedBookService";
 
 type Screen =
   | "landing"
   | "signup"
   | "dashboard"
   | "progress"
+  | "dictionaries"
   | "flashcard"
   | "summary";
 type ActiveSession = {
@@ -90,11 +93,17 @@ export default function App() {
     accuracy: 0,
   });
   const [totalReviewed, setTotalReviewed] = useState(0);
-  const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
+  const [activeSession, setActiveSession] = useState<ActiveSession | null>(
+    null,
+  );
   const [startSessionLoading, setStartSessionLoading] = useState(false);
-  const [startSessionError, setStartSessionError] = useState<string | null>(null);
+  const [startSessionError, setStartSessionError] = useState<string | null>(
+    null,
+  );
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+  const currentUserId = useRef<number | null>(null);
   const [currentBookId, setCurrentBookId] = useState<number | null>(null);
+  const [bookList, setBookList] = useState<Book[]>([]);
 
   const navigateTo = (screen: Screen) => {
     setCurrentScreen(screen);
@@ -125,13 +134,14 @@ export default function App() {
 
   const clearActiveSession = (userEmail: string | null = currentUserEmail) => {
     setActiveSession(null);
-    setCurrentBookId(null);
     persistActiveSession(userEmail, null);
   };
 
   const readTodayReviewedFromStorage = (userEmail: string): number => {
     try {
-      const stored = localStorage.getItem(getReviewedTodayStorageKey(userEmail));
+      const stored = localStorage.getItem(
+        getReviewedTodayStorageKey(userEmail),
+      );
       const parsed = Number(stored ?? "0");
       return Number.isFinite(parsed) ? parsed : 0;
     } catch {
@@ -142,7 +152,10 @@ export default function App() {
 
   const writeTodayReviewedToStorage = (userEmail: string, count: number) => {
     try {
-      localStorage.setItem(getReviewedTodayStorageKey(userEmail), String(count));
+      localStorage.setItem(
+        getReviewedTodayStorageKey(userEmail),
+        String(count),
+      );
     } catch {
       // Swallow storage errors to avoid breaking login/session flows.
     }
@@ -175,6 +188,8 @@ export default function App() {
     if (res.success) {
       // TODO: set up user & implement dashboard UI
       const userEmail = res.user.email;
+      const selectedBookId = res.user.selected_book_id;
+      currentUserId.current = res.user.id;
       // NOTE: Backend-driven auto-resume of unfinished review sessions on login
       // is disabled until we can safely restore full progress (current index,
       // answered words, counts) from the backend to avoid resubmitting
@@ -182,6 +197,7 @@ export default function App() {
       // and may restore them in limited flows (e.g. registration) as a temporary
       // UX aid until full resume support is implemented.
       setCurrentUserEmail(userEmail);
+      setCurrentBookId(selectedBookId);
       syncTodayReviewedForUser(userEmail);
       navigateTo("dashboard");
       console.log("login succeeded.");
@@ -202,6 +218,17 @@ export default function App() {
           throw new AuthError("UNKNOWN", "Unknown error");
       }
     }
+    const books = await getBooks();
+    if (!books.length) {
+      throw new Error("No books available");
+    } else {
+      if (!currentBookId) {
+        const selectedBook = books.find((book) => !book.is_default) ?? books[0];
+        setCurrentBookId(selectedBook.id);
+        handleChangeBook(selectedBook.id);
+      }
+      setBookList(books);
+    }
   };
 
   const handleRegister = async (email: string, password: string) => {
@@ -209,6 +236,7 @@ export default function App() {
     if (res.success) {
       // TODO: set up user & implement dashboard UI
       const userEmail = res.user.email;
+      currentUserId.current = res.user.id;
       // Align behavior with login: do not auto-resume unfinished review sessions
       // until we can safely restore full progress from the backend.
       setCurrentUserEmail(userEmail);
@@ -216,7 +244,6 @@ export default function App() {
       navigateTo("dashboard");
       console.info("register succeeded.");
     } else {
-      // TODO: display error messages.
       switch (res.errorType) {
         case "NETWORK":
           console.error("register failed: network.");
@@ -241,6 +268,7 @@ export default function App() {
     const res = await logout();
     clearActiveSession(currentUserEmail);
     setCurrentUserEmail(null);
+    currentUserId.current = null;
     setTotalReviewed(0);
 
     if (res.success) {
@@ -255,24 +283,20 @@ export default function App() {
   const handleStartSession = async () => {
     setStartSessionError(null);
     setStartSessionLoading(true);
-    let selectedBookId: number | null = null;
 
     try {
       const books = await getBooks();
       if (!books.length) {
         throw new Error("No books available");
       }
-
-      const selectedBook = books.find((book) => !book.is_default) ?? books[0];
-      selectedBookId = selectedBook.id;
       const startedSession = await startReviewSession(
-        selectedBook.id,
+        currentBookId? currentBookId : books[0].id,
         DEFAULT_REVIEW_LIMIT,
       );
 
       const nextSession: ActiveSession = {
         session_id: startedSession.session_id,
-        book_id: selectedBook.id,
+        book_id: currentBookId? currentBookId : books[0].id,
         words: startedSession.words,
       };
 
@@ -288,18 +312,40 @@ export default function App() {
         // - No backend review session is created in this flow.
         // - Flashcard page runs in local/non-session mode for continuous practice only.
         clearActiveSession(currentUserEmail);
-        setCurrentBookId(selectedBookId);
         navigateTo("flashcard");
       } else {
-        setStartSessionError("Failed to start study session. Please try again.");
+        setStartSessionError(
+          "Failed to start study session. Please try again.",
+        );
       }
     } finally {
       setStartSessionLoading(false);
     }
   };
 
+  const handleChangeBook = async (bookId: number) => {
+    if (currentUserId.current === null) {
+      console.error("Cannot change book: no user ID");
+      return;
+    } else {
+      if (bookId != currentBookId){
+        clearActiveSession(currentUserEmail);
+        const res = await changeSelectedBook(currentUserId.current, bookId);
+      if (res.success) {
+        setCurrentBookId(bookId);
+        console.log("Changed book successfully");
+      } else {
+        console.error("Failed to change book");
+      }
+      } else {
+        console.log("Selected book is already active");
+      }
+    }
+  };
   const showTopNav =
-    currentScreen === "dashboard" || currentScreen === "progress";
+    currentScreen === "dashboard" ||
+    currentScreen === "progress" ||
+    currentScreen === "dictionaries";
 
   return (
     <div className="app-shell">
@@ -326,8 +372,21 @@ export default function App() {
               >
                 Progress
               </button>
+              <button
+                type="button"
+                className={`top-nav-link ${
+                  currentScreen === "dictionaries" ? "is-active" : ""
+                }`}
+                onClick={() => navigateTo("dictionaries")}
+              >
+                Dictionaries
+              </button>
             </nav>
-            <button type="button" className="top-nav-link" onClick={handleLogout}>
+            <button
+              type="button"
+              className="top-nav-link"
+              onClick={handleLogout}
+            >
               Log out
             </button>
           </div>
@@ -350,6 +409,13 @@ export default function App() {
         />
       )}
       {currentScreen === "progress" && <ProgressPage />}
+      {currentScreen === "dictionaries" && (
+        <DictionariesPage
+          handleChangeBook={handleChangeBook}
+          selectedBookId={activeSession?.book_id ?? currentBookId}
+          books={bookList}
+        />
+      )}
       {currentScreen === "flashcard" && (
         <Flashcard
           onQuit={handleFlashcardQuit}

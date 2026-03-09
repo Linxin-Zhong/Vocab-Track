@@ -36,6 +36,7 @@ class User(AbstractUser):
     user_name = models.CharField(max_length=150, unique=False, db_column="user_name")
     email = models.EmailField(unique=True, blank=False, null=False)
     create_time = models.DateTimeField(auto_now_add=True, db_column="create_time")
+    selected_book_id = models.IntegerField(blank=True, null=True, db_column="selected_book_id")
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
