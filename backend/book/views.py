@@ -10,6 +10,7 @@ from .models import Book, BookWord
 from .serializers import (
     BookWordSerializer,
     BookSerializer,
+    BookBasicSerializer,
     BookWordCreateSerializer,
     BookWordUpdateSerializer,
     FileUploadSerializer,
@@ -26,6 +27,13 @@ class BookViewSet(ModelViewSet):
 
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        # Use full serializer only for retrieve (single book detail)
+        if self.action == "retrieve":
+            return BookSerializer
+        # Use basic serializer for list, create, update
+        return BookBasicSerializer
 
     def get_queryset(self):
         # Restrict returned books to those owned by the requesting user or default books.
