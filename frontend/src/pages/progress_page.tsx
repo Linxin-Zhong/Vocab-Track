@@ -108,14 +108,16 @@ export function ProgressPage({ onSelectWord }: ProgressPageProps) {
   const [selectedDictionary, setSelectedDictionary] = useState<DictionaryKey | null>(
     null,
   );
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingOptions, setIsLoadingOptions] = useState<boolean>(true);
+  const [isLoadingProgress, setIsLoadingProgress] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [progressData, setProgressData] = useState<ProgressPayload | null>(null);
+  const isLoading = isLoadingOptions || isLoadingProgress;
 
   useEffect(() => {
     let isCancelled = false;
 
-    setIsLoading(true);
+    setIsLoadingOptions(true);
     setErrorMessage(null);
 
     void getProgressDictionaryOptions()
@@ -135,7 +137,7 @@ export function ProgressPage({ onSelectWord }: ProgressPageProps) {
       })
       .finally(() => {
         if (isCancelled) return;
-        setIsLoading(false);
+        setIsLoadingOptions(false);
       });
 
     return () => {
@@ -144,10 +146,14 @@ export function ProgressPage({ onSelectWord }: ProgressPageProps) {
   }, []);
 
   useEffect(() => {
-    if (selectedDictionary === null) return;
+    if (selectedDictionary === null) {
+      setProgressData(null);
+      setIsLoadingProgress(false);
+      return;
+    }
 
     let isCancelled = false;
-    setIsLoading(true);
+    setIsLoadingProgress(true);
     setErrorMessage(null);
 
     void getProgressData(selectedDictionary)
@@ -161,7 +167,7 @@ export function ProgressPage({ onSelectWord }: ProgressPageProps) {
       })
       .finally(() => {
         if (isCancelled) return;
-        setIsLoading(false);
+        setIsLoadingProgress(false);
       });
 
     return () => {
