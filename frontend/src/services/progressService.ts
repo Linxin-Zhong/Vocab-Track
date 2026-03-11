@@ -78,27 +78,6 @@ function clamp01(value: number): number {
   return value;
 }
 
-function formatISODate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function buildLast7Days(): string[] {
-  const dates: string[] = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  for (let offset = 6; offset >= 0; offset -= 1) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - offset);
-    dates.push(formatISODate(date));
-  }
-
-  return dates;
-}
-
 function normalizeListPayload<T>(raw: unknown): T[] {
   if (Array.isArray(raw)) {
     return raw as T[];
@@ -158,37 +137,33 @@ function normalizeProgressPayload(raw: unknown, dictionaryKey: DictionaryKey): P
   }
 
   const rawTrend = Array.isArray(response.rw_trend) ? response.rw_trend : [];
-  const trendByDate = new Map<
-    string,
-    {
-      count: number;
-      accuracy: number | null;
-    }
-  >();
+  const normalizedTrend: Array<{
+    date: string;
+    count: number;
+    accuracy: number | null;
+  }> = [];
 
   for (const point of rawTrend) {
     if (typeof point.date !== "string" || !isFiniteNumber(point.count)) continue;
-    trendByDate.set(point.date, {
+    normalizedTrend.push({
       count: point.count,
+      date: point.date,
       accuracy: isFiniteNumber(point.accuracy) ? clamp01(point.accuracy) : null,
     });
   }
 
-  const last7Days = buildLast7Days();
-
-  const dailyActivity: DailyActivityPoint[] = last7Days.map((date) => ({
-    date,
-    count: trendByDate.get(date)?.count ?? 0,
+  const dailyActivity: DailyActivityPoint[] = normalizedTrend.map((point) => ({
+    date: point.date,
+    count: point.count,
   }));
 
-  const dailyAccuracy: DailyAccuracyPoint[] = last7Days
-    .map((date) => {
-      const point = trendByDate.get(date);
-      if (!point || point.count <= 0 || point.accuracy === null) {
+  const dailyAccuracy: DailyAccuracyPoint[] = normalizedTrend
+    .map((point) => {
+      if (point.count <= 0 || point.accuracy === null) {
         return null;
       }
       return {
-        date,
+        date: point.date,
         accuracy: point.accuracy,
       };
     })
