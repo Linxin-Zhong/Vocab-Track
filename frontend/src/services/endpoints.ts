@@ -7,6 +7,7 @@ export const ENDPOINTS = {
   },
   BOOK: {
     BASE: "/book/",
+    DETAIL: (bookId: number) => `/book/${bookId}/`,
     WORDS: (bookId: number) => `/book/${bookId}/word/`,
   },
   REVIEW: {

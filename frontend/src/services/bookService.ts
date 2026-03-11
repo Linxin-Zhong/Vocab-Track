@@ -22,16 +22,28 @@ type PaginatedResponse<T> = {
   results: T[];
 };
 
-type ApiBook = {
+
+// Keep raw API types separate from app types:
+// backend may return `book_id`/`book_word_id`, while the app consistently uses `id`.
+type BackendBook = {
   id?: number;
   book_id?: number;
   book_name?: string;
   is_default?: boolean;
 };
 
+type BackendWord = {
+  id?: number;
+  book_word_id?: number;
+  word_text?: string;
+  meaning?: string;
+  example?: string | null;
+  difficulty?: number;
+};
+
 function isPaginatedResponse<T>(data: unknown): data is PaginatedResponse<T> {
   if (!data || typeof data !== "object") return false;
-  return "results" in data && Array.isArray((data as any).results);
+  return "results" in data && Array.isArray((data as { results?: unknown }).results);
 }
 
 function normalizeListResponse<T>(data: unknown): T[] {
@@ -44,28 +56,53 @@ function normalizeListResponse<T>(data: unknown): T[] {
   return [];
 }
 
-function normalizeBook(data: unknown): Book | null {
-  if (!data || typeof data !== "object") return null;
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
 
-  const row = data as ApiBook;
-  const normalizedId = row.id ?? row.book_id;
-  if (typeof normalizedId !== "number" || typeof row.book_name !== "string") {
+function normalizeBook(row: BackendBook): Book | null {
+  const id = row.id ?? row.book_id;
+  if (
+    !isFiniteNumber(id) ||
+    typeof row.book_name !== "string" ||
+    typeof row.is_default !== "boolean"
+  ) {
     return null;
   }
-
   return {
-    id: normalizedId,
+    id,
     book_name: row.book_name,
-    is_default: Boolean(row.is_default),
+    is_default: row.is_default,
+  };
+}
+
+function normalizeWord(row: BackendWord): Word | null {
+  const id = row.id ?? row.book_word_id;
+  if (
+    !isFiniteNumber(id) ||
+    typeof row.word_text !== "string" ||
+    typeof row.meaning !== "string" ||
+    !isFiniteNumber(row.difficulty)
+  ) {
+    return null;
+  }
+  return {
+    id,
+    word_text: row.word_text,
+    meaning: row.meaning,
+    example: row.example ?? null,
+    difficulty: row.difficulty,
   };
 }
 
 export async function getBooks(): Promise<Book[]> {
   // GET /book/
-  const data = await apiRequest<Book[] | PaginatedResponse<Book>>(
+  const data = await apiRequest<BackendBook[] | PaginatedResponse<BackendBook>>(
     ENDPOINTS.BOOK.BASE,
   );
-  const rows = normalizeListResponse<unknown>(data);
+  const rows = normalizeListResponse<BackendBook>(data)
+    .map(normalizeBook)
+    .filter((book): book is Book => book !== null);
   return rows
     .map((row) => normalizeBook(row))
     .filter((book): book is Book => book !== null);
@@ -73,23 +110,8 @@ export async function getBooks(): Promise<Book[]> {
 
 export async function getWordsByBookId(bookId: number): Promise<Word[]> {
   // GET /book/{bookId}/word/
-  const data = await apiRequest<Word[] | PaginatedResponse<Word>>(
+  const data = await apiRequest<BackendWord[] | PaginatedResponse<BackendWord>>(
     ENDPOINTS.BOOK.WORDS(bookId),
   );
   return normalizeListResponse(data);
-}
-
-export async function createBook(bookName: string): Promise<Book> {
-  const payload = { book_name: bookName.trim() };
-  const data = await apiRequest<unknown>(ENDPOINTS.BOOK.BASE, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-
-  const book = normalizeBook(data);
-  if (!book) {
-    throw new Error("Book was created, but the response format was invalid.");
-  }
-
-  return book;
 }

@@ -15,6 +15,16 @@ describe("bookService", () => {
   });
 
   describe("getBooks", () => {
+    it("normalizes backend book_id to id", async () => {
+      mockApiRequest.mockResolvedValueOnce([
+        { book_id: 11, book_name: "Core 1", is_default: true },
+      ]);
+
+      const result = await getBooks();
+
+      expect(result).toEqual([{ id: 11, book_name: "Core 1", is_default: true }]);
+    });
+
     it("returns books when API returns an array", async () => {
       const books = [{ id: 1, book_name: "Core 1", is_default: true }];
       mockApiRequest.mockResolvedValueOnce(books);
@@ -49,6 +59,30 @@ describe("bookService", () => {
   });
 
   describe("getWordsByBookId", () => {
+    it("normalizes backend book_word_id to id", async () => {
+      mockApiRequest.mockResolvedValueOnce([
+        {
+          book_word_id: 101,
+          word_text: "abate",
+          meaning: "to lessen",
+          example: null,
+          difficulty: 2,
+        },
+      ]);
+
+      const result = await getWordsByBookId(7);
+
+      expect(result).toEqual([
+        {
+          id: 101,
+          word_text: "abate",
+          meaning: "to lessen",
+          example: null,
+          difficulty: 2,
+        },
+      ]);
+    });
+
     it("calls words endpoint with the provided book id", async () => {
       const words = [
         { id: 1, word_text: "abate", meaning: "to lessen", difficulty: 2 },
@@ -58,7 +92,7 @@ describe("bookService", () => {
       const result = await getWordsByBookId(7);
 
       expect(mockApiRequest).toHaveBeenCalledWith(ENDPOINTS.BOOK.WORDS(7));
-      expect(result).toEqual(words);
+      expect(result).toEqual([{ ...words[0], example: null }]);
     });
 
     it("returns paginated word results", async () => {
@@ -69,7 +103,7 @@ describe("bookService", () => {
 
       const result = await getWordsByBookId(3);
 
-      expect(result).toEqual(words);
+      expect(result).toEqual([{ ...words[0], example: null }]);
     });
 
     it("returns empty list on unexpected response shape", async () => {
