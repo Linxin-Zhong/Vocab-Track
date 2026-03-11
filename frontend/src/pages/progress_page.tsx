@@ -12,29 +12,19 @@ import {
 } from "recharts";
 import {
   getProgressData,
+  getProgressDictionaryOptions,
   type DailyAccuracyPoint,
   type DailyActivityPoint,
+  type DictionaryOption,
   type DictionaryKey,
   type ProgressPayload,
   type WordPerformanceRow,
 } from "../services/progressService";
 import "./progress_page.css";
 
-type DictionaryOption = {
-  key: DictionaryKey;
-  label: string;
-};
-
 type ProgressPageProps = {
   onSelectWord?: (word: WordPerformanceRow) => void;
 };
-
-const DICTIONARY_OPTIONS: DictionaryOption[] = [
-  { key: "general", label: "General Vocabulary" },
-  { key: "academic", label: "Academic Vocabulary" },
-  { key: "toefl", label: "TOEFL Vocabulary" },
-  { key: "custom", label: "Custom Word List" },
-];
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -114,13 +104,48 @@ function EmptyChartState({ label }: { label: string }) {
 }
 
 export function ProgressPage({ onSelectWord }: ProgressPageProps) {
-  const [selectedDictionary, setSelectedDictionary] =
-    useState<DictionaryKey>("general");
+  const [dictionaryOptions, setDictionaryOptions] = useState<DictionaryOption[]>([]);
+  const [selectedDictionary, setSelectedDictionary] = useState<DictionaryKey | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [progressData, setProgressData] = useState<ProgressPayload | null>(null);
 
   useEffect(() => {
+    let isCancelled = false;
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    void getProgressDictionaryOptions()
+      .then((options) => {
+        if (isCancelled) return;
+        setDictionaryOptions(options);
+        setSelectedDictionary((current) => {
+          if (current !== null && options.some((option) => option.key === current)) {
+            return current;
+          }
+          return options[0]?.key ?? null;
+        });
+      })
+      .catch(() => {
+        if (isCancelled) return;
+        setErrorMessage("Unable to load progress data right now.");
+      })
+      .finally(() => {
+        if (isCancelled) return;
+        setIsLoading(false);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (selectedDictionary === null) return;
+
     let isCancelled = false;
     setIsLoading(true);
     setErrorMessage(null);
@@ -155,8 +180,8 @@ export function ProgressPage({ onSelectWord }: ProgressPageProps) {
   );
   const wordPerformance = progressData?.wordPerformance ?? [];
   const selectedDictionaryLabel =
-    DICTIONARY_OPTIONS.find((option) => option.key === selectedDictionary)?.label ??
-    "General Vocabulary";
+    dictionaryOptions.find((option) => option.key === selectedDictionary)?.label ??
+    "";
 
   const hasActivity = dailyActivity.some((point: DailyActivityPoint) => point.count > 0);
   const hasAccuracy = dailyAccuracy.length > 0;
@@ -170,7 +195,7 @@ export function ProgressPage({ onSelectWord }: ProgressPageProps) {
         </header>
 
         <div className="progress-pill-row" role="tablist" aria-label="Dictionary filter">
-          {DICTIONARY_OPTIONS.map((option) => {
+          {dictionaryOptions.map((option) => {
             const isActive = selectedDictionary === option.key;
             return (
               <button
@@ -199,6 +224,12 @@ export function ProgressPage({ onSelectWord }: ProgressPageProps) {
           </div>
         ) : null}
 
+        {!isLoading && !errorMessage && dictionaryOptions.length === 0 ? (
+          <div className="progress-error-card">
+            <p>No dictionaries available yet.</p>
+          </div>
+        ) : null}
+
         {!isLoading && !errorMessage && summary ? (
           <>
             <section className="progress-stats-grid">
@@ -221,7 +252,7 @@ export function ProgressPage({ onSelectWord }: ProgressPageProps) {
                 <header className="progress-chart-header">
                   <h2 className="progress-chart-title">Daily Study Activity</h2>
                   <p className="progress-chart-subtitle">
-                    Words reviewed per day — last 14 days
+                    Words reviewed per day — last 7 days
                   </p>
                 </header>
                 {hasActivity ? (
@@ -266,7 +297,7 @@ export function ProgressPage({ onSelectWord }: ProgressPageProps) {
                 <header className="progress-chart-header">
                   <h2 className="progress-chart-title">Daily Accuracy</h2>
                   <p className="progress-chart-subtitle">
-                    Accuracy on study days — last 14 days
+                    Accuracy on study days — last 7 days
                   </p>
                 </header>
                 {hasAccuracy ? (
