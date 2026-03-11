@@ -3,6 +3,8 @@ interface DashboardProps {
   wordsReviewedToday: number;
   onStartSession: () => Promise<void> | void;
   onViewProgress?: () => void;
+  onViewDictionaries?: () => void;
+  onImportWords?: () => void;
   isStartingSession?: boolean;
   startSessionError?: string | null;
 }
@@ -11,6 +13,8 @@ export function Dashboard({
   wordsReviewedToday,
   onStartSession,
   onViewProgress,
+  onViewDictionaries,
+  onImportWords,
   isStartingSession = false,
   startSessionError = null,
 }: DashboardProps) {
@@ -51,15 +55,35 @@ export function Dashboard({
           ) : null}
         </div>
 
-        {onViewProgress && (
+        {(onViewProgress || onViewDictionaries || onImportWords) && (
           <div className="dashboard-secondary-actions">
-            <button
-              type="button"
-              className="dashboard-secondary-btn"
-              onClick={onViewProgress}
-            >
-              View Progress
-            </button>
+            {onViewProgress && (
+              <button
+                type="button"
+                className="dashboard-secondary-btn"
+                onClick={onViewProgress}
+              >
+                View Progress
+              </button>
+            )}
+            {onViewDictionaries && (
+              <button
+                type="button"
+                className="dashboard-secondary-btn"
+                onClick={onViewDictionaries}
+              >
+                Dictionaries
+              </button>
+            )}
+            {onImportWords && (
+              <button
+                type="button"
+                className="dashboard-secondary-btn"
+                onClick={onImportWords}
+              >
+                Import Words
+              </button>
+            )}
           </div>
         )}
       </div>

@@ -43,7 +43,7 @@
 .top-nav-links {
   display: inline-flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
 }
 
 .top-nav-link {
@@ -51,9 +51,10 @@
   background: transparent;
   padding: 0;
   color: #777777;
-  font-size: 1.125rem;
+  font-size: 1rem;
   line-height: 1;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 .top-nav-link:hover {
@@ -83,10 +84,12 @@
 
   .top-nav-links {
     justify-self: center;
-    gap: 14px;
+    gap: 10px;
+    overflow-x: auto;
+    max-width: 100%;
   }
 
   .top-nav-link {
-    font-size: 1.125rem;
+    font-size: 0.9rem;
   }
 }
