@@ -52,11 +52,12 @@ async function requestImportWords(
     try {
       const errorData = await parseJson();
       if (typeof errorData === "object" && errorData !== null) {
+        const errorObj = errorData as Record<string, unknown>;
         const maybeMessage =
-          "message" in errorData
-            ? errorData.message
-            : "detail" in errorData
-              ? errorData.detail
+          "message" in errorObj
+            ? errorObj["message"]
+            : "detail" in errorObj
+              ? errorObj["detail"]
               : undefined;
 
         if (typeof maybeMessage === "string" && maybeMessage.trim()) {
