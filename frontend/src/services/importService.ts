@@ -1,9 +1,8 @@
-import { getAccessToken } from "./authService";
 import { ENDPOINTS } from "./endpoints";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { apiRequest } from "./apiRequest";
 
 type ImportedWord = {
+  book_word_id: number;
   book_word_id: number;
   word_text: string;
   meaning: string;
@@ -34,50 +33,13 @@ async function requestImportWords(
   bookId: number,
   entries: ImportWordPayload[],
 ): Promise<unknown> {
-  const token = getAccessToken();
-
-  const response = await fetch(`${API_BASE_URL}${ENDPOINTS.BOOK.WORDS(bookId)}`, {
+  return apiRequest<unknown>(ENDPOINTS.BOOK.WORDS(bookId), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(token && { Authorization: `Token ${token}` }),
     },
     body: JSON.stringify(entries),
   });
-
-  let responseData: unknown;
-  try {
-    responseData = await response.json();
-  } catch (err) {
-    if (!response.ok) {
-      // For non-OK responses, fall back to an empty object so we can still
-      // surface a meaningful error message.
-      responseData = {};
-    } else {
-      // For successful responses, surface JSON parse errors instead of
-      // silently normalizing to an empty object.
-      throw err;
-    }
-  }
-
-  if (!response.ok) {
-    let errorMessage = "Failed to import words.";
-    if (typeof responseData === "object" && responseData !== null) {
-      const maybeMessage = (responseData as { message?: unknown }).message;
-      const maybeDetail = (responseData as { detail?: unknown }).detail;
-      if (typeof maybeMessage === "string") {
-        errorMessage = maybeMessage;
-      } else if (typeof maybeDetail === "string") {
-        errorMessage = maybeDetail;
-      }
-    }
-
-    const error = new Error(errorMessage) as Error & { status?: number };
-    error.status = response.status;
-    throw error;
-  }
-
-  return responseData;
 }
 
 export async function importWordsEntries(
