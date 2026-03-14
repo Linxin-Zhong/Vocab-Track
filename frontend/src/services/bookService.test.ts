@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { apiRequest } from "./apiClient";
 import { ENDPOINTS } from "./endpoints";
-import { getBooks, getWordsByBookId } from "./bookService";
+import { createBook, getBooks, getWordsByBookId } from "./bookService";
 
 vi.mock("./apiClient", () => ({
   apiRequest: vi.fn(),
@@ -112,6 +112,39 @@ describe("bookService", () => {
       const result = await getWordsByBookId(3);
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("createBook", () => {
+    it("posts to /book/ and normalizes backend book_id to id", async () => {
+      mockApiRequest.mockResolvedValueOnce({
+        book_id: 14,
+        book_name: "Core 2",
+        is_default: false,
+      });
+
+      const result = await createBook("  Core 2  ");
+
+      expect(mockApiRequest).toHaveBeenCalledWith(ENDPOINTS.BOOK.BASE, {
+        method: "POST",
+        body: JSON.stringify({ book_name: "Core 2" }),
+      });
+      expect(result).toEqual({
+        id: 14,
+        book_name: "Core 2",
+        is_default: false,
+      });
+    });
+
+    it("throws when the created book response is missing required fields", async () => {
+      mockApiRequest.mockResolvedValueOnce({
+        book_id: 14,
+        is_default: false,
+      });
+
+      await expect(createBook("Core 2")).rejects.toThrow(
+        "Book was created, but the response format was invalid.",
+      );
     });
   });
 });
