@@ -5,7 +5,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 type ImportedWord = {
   book_word_id: number;
-  book_word_id: number;
   word_text: string;
   meaning: string;
   example: string;
