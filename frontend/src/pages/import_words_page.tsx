@@ -249,6 +249,19 @@ export function ImportWordsPage({
     return active?.book_name ?? "No personal dictionaries available";
   }, [activeBookId, userBooks]);
 
+  useEffect(() => {
+    // Ensure the globally selected book matches the book that will receive the import
+    // when importing into an existing dictionary. This avoids importing into one book
+    // while starting a study session for another (e.g., a default book).
+    if (
+      importTargetMode === "existing" &&
+      activeBookId !== null &&
+      activeBookId !== selectedBookId
+    ) {
+      onChangeBook(activeBookId);
+    }
+  }, [activeBookId, selectedBookId, importTargetMode, onChangeBook]);
+
   const previewRows = useMemo(
     () => parsedFile?.rows.slice(0, PREVIEW_ROW_LIMIT) ?? [],
     [parsedFile],
