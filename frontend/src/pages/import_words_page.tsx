@@ -657,15 +657,16 @@ export function ImportWordsPage({
       <section className="import-format-card">
         <h2 className="import-format-title">Expected CSV Format</h2>
         <p className="import-format-text">
-          Your file should include three columns separated by commas, with one word per row.
+          Your file must have at least two comma-separated columns: word and definition, with one
+          word per row. You can optionally add example and difficulty as third and fourth columns.
         </p>
         <div className="import-format-code" aria-label="CSV format example">
-          <p className="csv-line">word,definition,example</p>
+          <p className="csv-line">word,definition[,example][,difficulty]</p>
           <p className="csv-line">
-            Resilient,Able to recover quickly,She was resilient in adversity.
+            Resilient,Able to recover quickly,She was resilient in adversity.,hard
           </p>
           <p className="csv-line">
-            Candid,Truthful and straightforward,He gave a candid opinion.
+            Candid,Truthful and straightforward
           </p>
         </div>
       </section>
