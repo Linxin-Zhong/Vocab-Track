@@ -17,8 +17,7 @@ describe("selectedBookService", () => {
     const user = {
       id: 8,
       email: "test@example.com",
-      user_name: "tester",
-      create_time: "2026-03-14T00:00:00Z",
+      username: "tester",
       selected_book_id: 12,
     };
     mockApiRequest.mockResolvedValueOnce(user);
