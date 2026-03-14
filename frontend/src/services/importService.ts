@@ -1,5 +1,7 @@
 import { ENDPOINTS } from "./endpoints";
-import { apiRequest } from "./apiRequest";
+import { getAccessToken } from "./authService";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 type ImportedWord = {
   book_word_id: number;
@@ -33,13 +35,45 @@ async function requestImportWords(
   bookId: number,
   entries: ImportWordPayload[],
 ): Promise<unknown> {
-  return apiRequest<unknown>(ENDPOINTS.BOOK.WORDS(bookId), {
+  const token = getAccessToken();
+  const response = await fetch(`${API_BASE_URL}${ENDPOINTS.BOOK.WORDS(bookId)}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...(token && { Authorization: `Token ${token}` }),
     },
     body: JSON.stringify(entries),
   });
+
+  const parseJson = async (): Promise<unknown> => response.json();
+
+  if (!response.ok) {
+    let message = "Failed to import words.";
+
+    try {
+      const errorData = await parseJson();
+      if (typeof errorData === "object" && errorData !== null) {
+        const maybeMessage =
+          "message" in errorData
+            ? errorData.message
+            : "detail" in errorData
+              ? errorData.detail
+              : undefined;
+
+        if (typeof maybeMessage === "string" && maybeMessage.trim()) {
+          message = maybeMessage;
+        }
+      }
+    } catch {
+      // Fall back to the import-specific generic error when the response body is invalid.
+    }
+
+    const error = new Error(message) as Error & { status?: number };
+    error.status = response.status;
+    throw error;
+  }
+
+  return parseJson();
 }
 
 export async function importWordsEntries(
