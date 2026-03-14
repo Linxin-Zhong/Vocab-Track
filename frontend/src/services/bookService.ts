@@ -22,7 +22,6 @@ type PaginatedResponse<T> = {
   results: T[];
 };
 
-
 // Keep raw API types separate from app types:
 // backend may return `book_id`/`book_word_id`, while the app consistently uses `id`.
 type BackendBook = {
@@ -96,22 +95,34 @@ function normalizeWord(row: BackendWord): Word | null {
 }
 
 export async function getBooks(): Promise<Book[]> {
-  // GET /book/
   const data = await apiRequest<BackendBook[] | PaginatedResponse<BackendBook>>(
     ENDPOINTS.BOOK.BASE,
   );
-  const rows = normalizeListResponse<BackendBook>(data)
+  return normalizeListResponse<BackendBook>(data)
     .map(normalizeBook)
-    .filter((book): book is Book => book !== null);
-  return rows
-    .map((row) => normalizeBook(row))
     .filter((book): book is Book => book !== null);
 }
 
 export async function getWordsByBookId(bookId: number): Promise<Word[]> {
-  // GET /book/{bookId}/word/
   const data = await apiRequest<BackendWord[] | PaginatedResponse<BackendWord>>(
     ENDPOINTS.BOOK.WORDS(bookId),
   );
-  return normalizeListResponse(data);
+  return normalizeListResponse<BackendWord>(data)
+    .map(normalizeWord)
+    .filter((word): word is Word => word !== null);
+}
+
+export async function createBook(bookName: string): Promise<Book> {
+  const payload = { book_name: bookName.trim() };
+  const data = await apiRequest<BackendBook>(ENDPOINTS.BOOK.BASE, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  const book = normalizeBook(data);
+  if (!book) {
+    throw new Error("Book was created, but the response format was invalid.");
+  }
+
+  return book;
 }
