@@ -113,3 +113,18 @@ export async function getWordsByBookId(bookId: number): Promise<Word[]> {
     .map(normalizeWord)
     .filter((word): word is Word => word !== null);
 }
+
+export async function createBook(bookName: string): Promise<Book> {
+  const payload = { book_name: bookName.trim() };
+  const data = await apiRequest<BackendBook>(ENDPOINTS.BOOK.BASE, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  const book = normalizeBook(data);
+  if (!book) {
+    throw new Error("Book was created, but the response format was invalid.");
+  }
+
+  return book;
+}

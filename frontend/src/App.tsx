@@ -9,7 +9,8 @@ import { Flashcard } from "./pages/flashcard";
 import { SessionSummary } from "./pages/session_summary";
 import { ProgressPage } from "./pages/progress_page";
 import { DictionariesPage } from "./pages/dictionaries_page";
-import { getBooks, type Book } from "./services/bookService";
+import { ImportWordsPage } from "./pages/import_words_page";
+import { createBook, getBooks, type Book } from "./services/bookService";
 import {
   startReviewSession,
   type ReviewSessionWord,
@@ -22,6 +23,7 @@ type Screen =
   | "dashboard"
   | "progress"
   | "dictionaries"
+  | "importWords"
   | "flashcard"
   | "summary";
 type ActiveSession = {
@@ -342,10 +344,25 @@ export default function App() {
       }
     }
   };
+
+  const handleCreateBook = async (bookName: string): Promise<Book> => {
+    const trimmedName = bookName.trim();
+    if (!trimmedName) {
+      throw new Error("Book name cannot be empty.");
+    }
+
+    const createdBook = await createBook(trimmedName);
+    const books = await getBooks();
+    setBookList(books);
+    await handleChangeBook(createdBook.id);
+    return createdBook;
+  };
+
   const showTopNav =
     currentScreen === "dashboard" ||
     currentScreen === "progress" ||
-    currentScreen === "dictionaries";
+    currentScreen === "dictionaries" ||
+    currentScreen === "importWords";
 
   return (
     <div className="app-shell">
@@ -381,6 +398,15 @@ export default function App() {
               >
                 Dictionaries
               </button>
+              <button
+                type="button"
+                className={`top-nav-link ${
+                  currentScreen === "importWords" ? "is-active" : ""
+                }`}
+                onClick={() => navigateTo("importWords")}
+              >
+                Import Words
+              </button>
             </nav>
             <button
               type="button"
@@ -404,6 +430,8 @@ export default function App() {
           wordsReviewedToday={totalReviewed}
           onStartSession={handleStartSession}
           onViewProgress={() => navigateTo("progress")}
+          onViewDictionaries={() => navigateTo("dictionaries")}
+          onImportWords={() => navigateTo("importWords")}
           isStartingSession={startSessionLoading}
           startSessionError={startSessionError}
         />
@@ -414,6 +442,16 @@ export default function App() {
           handleChangeBook={handleChangeBook}
           selectedBookId={activeSession?.book_id ?? currentBookId}
           books={bookList}
+        />
+      )}
+      {currentScreen === "importWords" && (
+        <ImportWordsPage
+          books={bookList}
+          selectedBookId={activeSession?.book_id ?? currentBookId}
+          onChangeBook={handleChangeBook}
+          onCreateBook={handleCreateBook}
+          onGoToDictionaries={() => navigateTo("dictionaries")}
+          onStartStudySession={handleStartSession}
         />
       )}
       {currentScreen === "flashcard" && (
