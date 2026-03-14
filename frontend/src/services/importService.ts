@@ -62,7 +62,9 @@ async function requestImportWords(
 
   if (!response.ok) {
     const error = new Error(
-      responseData?.message ?? "Failed to import words.",
+      responseData?.message ??
+        responseData?.detail ??
+        "Failed to import words.",
     ) as Error & { status?: number };
     error.status = response.status;
     throw error;
