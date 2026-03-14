@@ -30,10 +30,10 @@ export type ImportWordsResponse = {
   failed: FailedImport[];
 };
 
-export async function importWordsEntries(
+async function requestImportWords(
   bookId: number,
   entries: ImportWordPayload[],
-): Promise<ImportWordsResponse> {
+): Promise<any> {
   const token = getAccessToken();
 
   const response = await fetch(`${API_BASE_URL}${ENDPOINTS.BOOK.WORDS(bookId)}`, {
@@ -54,6 +54,15 @@ export async function importWordsEntries(
     error.status = response.status;
     throw error;
   }
+
+  return responseData;
+}
+
+export async function importWordsEntries(
+  bookId: number,
+  entries: ImportWordPayload[],
+): Promise<ImportWordsResponse> {
+  const responseData = await requestImportWords(bookId, entries);
 
   return {
     message: responseData?.message ?? "Words added successfully.",
