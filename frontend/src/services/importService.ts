@@ -45,7 +45,20 @@ async function requestImportWords(
     body: JSON.stringify(entries),
   });
 
-  const responseData = await response.json().catch(() => ({}));
+  let responseData: any;
+  try {
+    responseData = await response.json();
+  } catch (err) {
+    if (!response.ok) {
+      // For non-OK responses, fall back to an empty object so we can still
+      // surface a meaningful error message.
+      responseData = {};
+    } else {
+      // For successful responses, surface JSON parse errors instead of
+      // silently normalizing to an empty object.
+      throw err;
+    }
+  }
 
   if (!response.ok) {
     const error = new Error(
