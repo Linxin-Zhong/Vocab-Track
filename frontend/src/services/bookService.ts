@@ -95,6 +95,7 @@ function normalizeWord(row: BackendWord): Word | null {
 }
 
 export async function getBooks(): Promise<Book[]> {
+  // GET /book/
   const data = await apiRequest<BackendBook[] | PaginatedResponse<BackendBook>>(
     ENDPOINTS.BOOK.BASE,
   );
@@ -104,6 +105,7 @@ export async function getBooks(): Promise<Book[]> {
 }
 
 export async function getWordsByBookId(bookId: number): Promise<Word[]> {
+  // GET /book/{bookId}/word/
   const data = await apiRequest<BackendWord[] | PaginatedResponse<BackendWord>>(
     ENDPOINTS.BOOK.WORDS(bookId),
   );
