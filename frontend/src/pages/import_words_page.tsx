@@ -134,7 +134,7 @@ function parseCsvContent(content: string): ParsedFileResult {
 
   if (!rows.length) {
     throw new Error(
-      "We couldn't find valid rows in this CSV. Use rows like: word,definition,example.",
+      "We couldn't find valid rows in this CSV. Use rows like: word,definition or word,definition,example or word,definition,example,difficulty.",
     );
   }
 
