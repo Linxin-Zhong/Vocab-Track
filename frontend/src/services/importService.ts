@@ -33,7 +33,7 @@ export type ImportWordsResponse = {
 async function requestImportWords(
   bookId: number,
   entries: ImportWordPayload[],
-): Promise<any> {
+): Promise<unknown> {
   const token = getAccessToken();
 
   const response = await fetch(`${API_BASE_URL}${ENDPOINTS.BOOK.WORDS(bookId)}`, {
@@ -45,7 +45,7 @@ async function requestImportWords(
     body: JSON.stringify(entries),
   });
 
-  let responseData: any;
+  let responseData: unknown;
   try {
     responseData = await response.json();
   } catch (err) {
@@ -61,11 +61,18 @@ async function requestImportWords(
   }
 
   if (!response.ok) {
-    const error = new Error(
-      responseData?.message ??
-        responseData?.detail ??
-        "Failed to import words.",
-    ) as Error & { status?: number };
+    let errorMessage = "Failed to import words.";
+    if (typeof responseData === "object" && responseData !== null) {
+      const maybeMessage = (responseData as { message?: unknown }).message;
+      const maybeDetail = (responseData as { detail?: unknown }).detail;
+      if (typeof maybeMessage === "string") {
+        errorMessage = maybeMessage;
+      } else if (typeof maybeDetail === "string") {
+        errorMessage = maybeDetail;
+      }
+    }
+
+    const error = new Error(errorMessage) as Error & { status?: number };
     error.status = response.status;
     throw error;
   }
@@ -79,9 +86,30 @@ export async function importWordsEntries(
 ): Promise<ImportWordsResponse> {
   const responseData = await requestImportWords(bookId, entries);
 
+  let message = "Words added successfully.";
+  let created: ImportedWord[] = [];
+  let failed: FailedImport[] = [];
+
+  if (typeof responseData === "object" && responseData !== null) {
+    const maybeMessage = (responseData as { message?: unknown }).message;
+    if (typeof maybeMessage === "string") {
+      message = maybeMessage;
+    }
+
+    const maybeCreated = (responseData as { created?: unknown }).created;
+    if (Array.isArray(maybeCreated)) {
+      created = maybeCreated as ImportedWord[];
+    }
+
+    const maybeFailed = (responseData as { failed?: unknown }).failed;
+    if (Array.isArray(maybeFailed)) {
+      failed = maybeFailed as FailedImport[];
+    }
+  }
+
   return {
-    message: responseData?.message ?? "Words added successfully.",
-    created: Array.isArray(responseData?.created) ? responseData.created : [],
-    failed: Array.isArray(responseData?.failed) ? responseData.failed : [],
+    message,
+    created,
+    failed,
   };
 }
