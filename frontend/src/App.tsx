@@ -206,6 +206,9 @@ export default function App() {
     } else {
       // TODO: display error messages.
       switch (res.errorType) {
+        case "VALIDATION":
+          console.error("login failed: validation");
+          throw new AuthError("VALIDATION", "Invalid email or password");
         case "AUTH":
           console.error("login failed: auth");
           throw new AuthError("AUTH", "Invalid credentials");
@@ -217,7 +220,7 @@ export default function App() {
           throw new AuthError("RATE_LIMIT", "Too many attempts");
         default:
           console.error("login failed: unknown");
-          throw new AuthError("UNKNOWN", "Invalid email or password, please try again");
+          throw new AuthError("UNKNOWN", "Unknown error");
       }
     }
     const books = await getBooks();

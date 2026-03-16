@@ -26,7 +26,7 @@ export function LoginPage({ onLogin, onRegister }: LoginPageProps) {
       if (err instanceof AuthError) {
         setError(err.message);
       } else {
-        setError("Incorrect email or password.");
+        setError("An unknown error occurred, please try again.");
       }
     }
   };
