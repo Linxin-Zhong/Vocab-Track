@@ -1,0 +1,37 @@
+services:
+  - name: vocabtrack-backend
+    type: web
+    plan: free
+    repo: https://github.com/Linxin-Zhong/Vocab-Track.git
+    branch: deploy-to-render
+    region: ohio
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn api.asgi:application --host 0.0.0.0 --port $PORT
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: FRONTEND_EXTERNAL_URL
+        value: https://vocabtrack-q0qk.onrender.com
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+
+  - name: vocabtrack
+    type: web
+    repo: https://github.com/Linxin-Zhong/Vocab-Track.git
+    branch: deploy-to-render
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: vocabtrack-backend
+          envVarKey: RENDER_EXTERNAL_URL

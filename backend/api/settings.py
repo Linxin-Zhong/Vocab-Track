@@ -28,12 +28,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-3ty9p36e$x9!ah94h1ot2r5ocigzsldfdg-l*#7s7venzuwgbr"
+# SECRET_KEY = "django-insecure-3ty9p36e$x9!ah94h1ot2r5ocigzsldfdg-l*#7s7venzuwgbr"
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-dev-key-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS = [RENDER_EXTERNAL_HOSTNAME]
+else:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -69,7 +74,12 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
+FRONTEND_EXTERNAL_URL = os.environ.get('FRONTEND_EXTERNAL_URL')
+if FRONTEND_EXTERNAL_URL:
+    CORS_ALLOWED_ORIGINS = [FRONTEND_EXTERNAL_URL]
+else:
+    CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
+
 CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = "api.urls"
@@ -95,13 +105,13 @@ WSGI_APPLICATION = "api.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-# DATABASES = {"default": dj_database_url.parse(os.getenv("DATABASE_URL"))}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+DATABASES = {"default": dj_database_url.parse(os.getenv("DATABASE_URL"))}
 
 
 # Password validation

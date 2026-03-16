@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StartingPage } from "./starting_page";
+import { describe, it, vi, expect } from "vitest";
 
 describe("StartingPage", () => {
   it("renders the headline and calls onGetStarted", async () => {

@@ -6,6 +6,7 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
+  console.log('[apiRequest] URL: ', API_BASE_URL);
   const token = getAccessToken();
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {

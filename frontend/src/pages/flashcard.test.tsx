@@ -131,12 +131,12 @@ describe("Flashcard", () => {
     const nativeSetTimeout = window.setTimeout.bind(window);
     const setTimeoutSpy = vi
       .spyOn(window, "setTimeout")
-      .mockImplementation((cb: TimerHandler, delay?: number, ...args: unknown[]) => {
+      .mockImplementation((cb: TimerHandler, delay?: number, ...args: unknown[]): ReturnType<typeof setTimeout> => {
         if (delay === 1000 && typeof cb === "function") {
-          timeoutCallbacks.push(cb);
-          return 1;
+          timeoutCallbacks.push(cb as () => void);
+          return 1 as any as ReturnType<typeof setTimeout>;
         }
-        return nativeSetTimeout(cb, delay, ...(args as []));
+        return nativeSetTimeout(cb, delay, ...(args as [])) as any as ReturnType<typeof setTimeout>;
       });
     try {
       const user = userEvent.setup();
@@ -190,12 +190,12 @@ describe("Flashcard", () => {
     const nativeSetTimeout = window.setTimeout.bind(window);
     const setTimeoutSpy = vi
       .spyOn(window, "setTimeout")
-      .mockImplementation((cb: TimerHandler, delay?: number, ...args: unknown[]) => {
+      .mockImplementation((cb: TimerHandler, delay?: number, ...args: unknown[]): ReturnType<typeof setTimeout> => {
         if (delay === 1000 && typeof cb === "function") {
-          timeoutCallbacks.push(cb);
-          return 1;
+          timeoutCallbacks.push(cb as () => void);
+          return 1 as any as ReturnType<typeof setTimeout>;
         }
-        return nativeSetTimeout(cb, delay, ...(args as []));
+        return nativeSetTimeout(cb, delay, ...(args as [])) as any as ReturnType<typeof setTimeout>;
       });
     try {
       const onQuit = vi.fn();
@@ -260,23 +260,23 @@ describe("Flashcard", () => {
     const nativeSetTimeout = window.setTimeout.bind(window);
     const setTimeoutSpy = vi
       .spyOn(window, "setTimeout")
-      .mockImplementation((cb: TimerHandler, delay?: number, ...args: unknown[]) => {
+      .mockImplementation((cb: TimerHandler, delay?: number, ...args: unknown[]): ReturnType<typeof setTimeout> => {
         if (delay === 1000 && typeof cb === "function") {
-          timeoutCallbacks.push(cb);
-          return 1;
+          timeoutCallbacks.push(cb as () => void);
+          return 1 as any as ReturnType<typeof setTimeout>;
         }
-        return nativeSetTimeout(cb, delay, ...(args as []));
+        return nativeSetTimeout(cb, delay, ...(args as [])) as any as ReturnType<typeof setTimeout>;
       });
     try {
       const onQuit = vi.fn();
       const user = userEvent.setup();
-      let resolveEndSession: ((value: {
+      let resolveEndSession!: ((value: {
         session_id: number;
         duration_seconds: number;
         total: number;
         correct: number;
         accuracy: number;
-      }) => void) | null = null;
+      }) => void);
 
       mockGetWordsByBookId.mockResolvedValueOnce([
         { id: 10, word_text: "abate", meaning: "to lessen", difficulty: 2 },
@@ -291,7 +291,7 @@ describe("Flashcard", () => {
       });
       mockEndReviewSession.mockImplementationOnce(
         () =>
-          new Promise((resolve) => {
+          new Promise<any>((resolve) => {
             resolveEndSession = resolve;
           }),
       );
@@ -317,7 +317,7 @@ describe("Flashcard", () => {
       expect(screen.queryByText(/no words to review/i)).not.toBeInTheDocument();
       expect(onQuit).not.toHaveBeenCalled();
 
-      resolveEndSession?.({
+      resolveEndSession({
         session_id: 12,
         duration_seconds: 15,
         total: 1,
