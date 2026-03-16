@@ -206,6 +206,9 @@ export default function App() {
     } else {
       // TODO: display error messages.
       switch (res.errorType) {
+        case "VALIDATION":
+          console.error("login failed: validation");
+          throw new AuthError("VALIDATION", "Invalid email or password");
         case "AUTH":
           console.error("login failed: auth");
           throw new AuthError("AUTH", "Invalid credentials");
@@ -436,7 +439,7 @@ export default function App() {
           startSessionError={startSessionError}
         />
       )}
-      {currentScreen === "progress" && <ProgressPage />}
+      {currentScreen === "progress" && <ProgressPage studyingDictionary={currentBookId?currentBookId:null}/>}
       {currentScreen === "dictionaries" && (
         <DictionariesPage
           handleChangeBook={handleChangeBook}

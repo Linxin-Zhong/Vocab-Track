@@ -23,6 +23,7 @@ import {
 import "./progress_page.css";
 
 type ProgressPageProps = {
+  studyingDictionary: number|null;
   onSelectWord?: (word: WordPerformanceRow) => void;
 };
 
@@ -103,10 +104,10 @@ function EmptyChartState({ label }: { label: string }) {
   );
 }
 
-export function ProgressPage({ onSelectWord }: ProgressPageProps) {
+export function ProgressPage({ studyingDictionary, onSelectWord }: ProgressPageProps) {
   const [dictionaryOptions, setDictionaryOptions] = useState<DictionaryOption[]>([]);
   const [selectedDictionary, setSelectedDictionary] = useState<DictionaryKey | null>(
-    null,
+    studyingDictionary,
   );
   const [isLoadingOptions, setIsLoadingOptions] = useState<boolean>(true);
   const [isLoadingProgress, setIsLoadingProgress] = useState<boolean>(false);
