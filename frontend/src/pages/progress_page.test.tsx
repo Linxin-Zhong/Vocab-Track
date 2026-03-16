@@ -39,7 +39,7 @@ describe("ProgressPage", () => {
   it("shows loading then renders empty dictionaries state", async () => {
     mockGetProgressDictionaryOptions.mockResolvedValueOnce([]);
 
-    render(<ProgressPage />);
+    render(<ProgressPage studyingDictionary={0}/>);
 
     expect(screen.getByText(/loading progress/i)).toBeInTheDocument();
     expect(await screen.findByText(/no dictionaries available yet/i)).toBeInTheDocument();
@@ -49,7 +49,7 @@ describe("ProgressPage", () => {
   it("shows error state when dictionary options fail", async () => {
     mockGetProgressDictionaryOptions.mockRejectedValueOnce(new Error("boom"));
 
-    render(<ProgressPage />);
+    render(<ProgressPage studyingDictionary={0}/>);
 
     expect(
       await screen.findByText(/unable to load progress data right now/i),
@@ -76,7 +76,7 @@ describe("ProgressPage", () => {
       ],
     });
 
-    render(<ProgressPage />);
+    render(<ProgressPage studyingDictionary={0}/>);
 
     expect(await screen.findByText("12")).toBeInTheDocument();
     expect(screen.getByText("Days active")).toBeInTheDocument();
@@ -127,7 +127,7 @@ describe("ProgressPage", () => {
         ],
       });
 
-    render(<ProgressPage onSelectWord={onSelectWord} />);
+    render(<ProgressPage studyingDictionary={0}onSelectWord={onSelectWord} />);
 
     expect(await screen.findByText("abate")).toBeInTheDocument();
     await user.click(screen.getByRole("tab", { name: "French A1" }));
