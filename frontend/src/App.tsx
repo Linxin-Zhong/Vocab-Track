@@ -436,7 +436,7 @@ export default function App() {
           startSessionError={startSessionError}
         />
       )}
-      {currentScreen === "progress" && <ProgressPage studyingDictionary={currentBookId?currentBookId:0}/>}
+      {currentScreen === "progress" && <ProgressPage studyingDictionary={currentBookId?currentBookId:null}/>}
       {currentScreen === "dictionaries" && (
         <DictionariesPage
           handleChangeBook={handleChangeBook}

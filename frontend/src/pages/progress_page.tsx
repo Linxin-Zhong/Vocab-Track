@@ -23,7 +23,7 @@ import {
 import "./progress_page.css";
 
 type ProgressPageProps = {
-  studyingDictionary: DictionaryKey;
+  studyingDictionary: number|null;
   onSelectWord?: (word: WordPerformanceRow) => void;
 };
 
