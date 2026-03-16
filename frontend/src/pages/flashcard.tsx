@@ -71,6 +71,11 @@ export function Flashcard({
   const isSessionComplete = words.length > 0 && currentIndex >= words.length;
   const isFeedbackVisible = feedbackMessage != null;
 
+   const playPronunciation = (word: string) => {
+    const utterance = new SpeechSynthesisUtterance(word);
+    speechSynthesis.speak(utterance);
+  };
+
   const goToNextCard = () => {
     setCurrentIndex((prev) => prev + 1);
     setViewMode("question");
@@ -380,7 +385,9 @@ export function Flashcard({
             <>
               <div className="flashcard-content">
                 <h1 className="flashcard-word">{currentWord.word_text}</h1>
-
+                <button onClick={() => playPronunciation(currentWord.word_text)}>
+                  🔊
+                </button>
                 {viewMode === "answer" && (
                   <div className="flashcard-answer-text">
                     <p className="flashcard-meaning">{currentWord.meaning}</p>
