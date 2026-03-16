@@ -217,7 +217,7 @@ export default function App() {
           throw new AuthError("RATE_LIMIT", "Too many attempts");
         default:
           console.error("login failed: unknown");
-          throw new AuthError("UNKNOWN", "Unknown error");
+          throw new AuthError("UNKNOWN", "Invalid email or password, please try again");
       }
     }
     const books = await getBooks();
@@ -436,7 +436,7 @@ export default function App() {
           startSessionError={startSessionError}
         />
       )}
-      {currentScreen === "progress" && <ProgressPage />}
+      {currentScreen === "progress" && <ProgressPage studyingDictionary={currentBookId?currentBookId:0}/>}
       {currentScreen === "dictionaries" && (
         <DictionariesPage
           handleChangeBook={handleChangeBook}
