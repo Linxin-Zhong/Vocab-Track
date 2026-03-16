@@ -9,7 +9,7 @@ services:
     type: web
     plan: free
     repo: https://github.com/Linxin-Zhong/Vocab-Track.git
-    branch: test-deploy-to-render
+    branch: main
     region: ohio
     runtime: python
     rootDir: backend
@@ -31,7 +31,7 @@ services:
   - name: vocabtrack
     type: web
     repo: https://github.com/Linxin-Zhong/Vocab-Track.git
-    branch: test-deploy-to-render
+    branch: main
     runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
