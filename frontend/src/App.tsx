@@ -488,6 +488,11 @@ export default function App() {
           sessionId={activeSession?.session_id ?? null}
           sessionWords={activeSession?.words ?? null}
           bookId={activeSession?.book_id ?? currentBookId}
+          bookLanguage={
+            bookList.find(
+              (book) => book.id === (activeSession?.book_id ?? currentBookId),
+            )?.language ?? null
+          }
         />
       )}
       {currentScreen === "summary" && (
