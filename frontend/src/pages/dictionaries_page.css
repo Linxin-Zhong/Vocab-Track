@@ -46,6 +46,7 @@
   flex-direction: column;
   gap: 1.25rem; /* space-y-5 */
   transition: all 0.2s;
+  overflow: visible;
 }
 
 .dictionary-card:hover {
@@ -162,4 +163,12 @@
 
 .start-button:hover {
   background-color: #1f2937; /* slightly lighter on hover */
+}
+
+.pronounciation-selection {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding-right: 1.8rem;
 }

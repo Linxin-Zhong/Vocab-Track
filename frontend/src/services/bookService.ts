@@ -5,6 +5,7 @@ export type Book = {
   id: number;
   book_name: string;
   is_default: boolean;
+  language: string|null|undefined;
 };
 
 export type Word = {
@@ -29,6 +30,7 @@ type BackendBook = {
   book_id?: number;
   book_name?: string;
   is_default?: boolean;
+  language?: string | null;
 };
 
 type BackendWord = {
@@ -72,6 +74,7 @@ function normalizeBook(row: BackendBook): Book | null {
     id,
     book_name: row.book_name,
     is_default: row.is_default,
+    language: row.language
   };
 }
 
@@ -99,6 +102,7 @@ export async function getBooks(): Promise<Book[]> {
   const data = await apiRequest<BackendBook[] | PaginatedResponse<BackendBook>>(
     ENDPOINTS.BOOK.BASE,
   );
+  console.log("Raw book data from API:", data);
   return normalizeListResponse<BackendBook>(data)
     .map(normalizeBook)
     .filter((book): book is Book => book !== null);
