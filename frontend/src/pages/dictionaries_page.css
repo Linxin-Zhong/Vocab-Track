@@ -202,3 +202,13 @@
 .dropdown-menu li:hover {
   background-color: #f3f4f6;
 }
+
+.pronounciationList {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem; /* space-y-2 */
+}
+
+.pronounciationLabel {
+  padding: 0.5rem;
+}

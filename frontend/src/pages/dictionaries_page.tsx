@@ -78,46 +78,52 @@ export function DictionariesPage({
                   {isSelected ? "Selected" : "Select"}
                 </button>
 
-                <div className="dropdown-wrapper" onBlur={() => setTimeout(() => setOpenDropdowns({}), 200)}>
-                  <button
-                    className="dropdown-button"
-                    onClick={() =>
-                      setOpenDropdowns((prev) => ({
-                        [dict.id]: !prev[dict.id],
-                      }))
-                    }
+                <div className="pronounciationList">
+                  <div className="pronounciationLabel">Pronounciation: </div>
+                  <div
+                    className="dropdown-wrapper"
+                    onBlur={() => setTimeout(() => setOpenDropdowns({}), 200)}
                   >
-                    {dict.language ?? "Language not defined"}
-                  </button>
-                  {openDropdowns[dict.id] && (
-                    <ul className="dropdown-menu">
-                      <li
-                        onClick={() => {
-                          handleChangeBookLanguage(dict.id, null);
-                          setOpenDropdowns((prev) => ({
-                            ...prev,
-                            [dict.id]: false,
-                          }));
-                        }}
-                      >
-                        Language not defined
-                      </li>
-                      {languages.map((lang) => (
+                    <button
+                      className="dropdown-button"
+                      onClick={() =>
+                        setOpenDropdowns((prev) => ({
+                          [dict.id]: !prev[dict.id],
+                        }))
+                      }
+                    >
+                      {dict.language ?? "Not specified"}
+                    </button>
+                    {openDropdowns[dict.id] && (
+                      <ul className="dropdown-menu">
                         <li
-                          key={lang}
                           onClick={() => {
-                            handleChangeBookLanguage(dict.id, lang);
+                            handleChangeBookLanguage(dict.id, null);
                             setOpenDropdowns((prev) => ({
                               ...prev,
                               [dict.id]: false,
                             }));
                           }}
                         >
-                          {lang}
+                          Language not specified
                         </li>
-                      ))}
-                    </ul>
-                  )}
+                        {languages.map((lang) => (
+                          <li
+                            key={lang}
+                            onClick={() => {
+                              handleChangeBookLanguage(dict.id, lang);
+                              setOpenDropdowns((prev) => ({
+                                ...prev,
+                                [dict.id]: false,
+                              }));
+                            }}
+                          >
+                            {lang}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
