@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Book } from "../services/bookService";
 import "./dictionaries_page.css";
+import { click } from "@testing-library/user-event/dist/cjs/convenience/click.js";
 
 type DictionariesPageProps = {
   handleChangeBook: (bookId: number) => void;
@@ -16,6 +17,10 @@ export function DictionariesPage({
   books,
 }: DictionariesPageProps) {
   const [languages, setLanguages] = useState<string[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [bookId: number]: boolean;
+  }>({});
   useEffect(() => {
     // Get voices, but make sure to wait for them to load
     const loadVoices = () => {
@@ -72,20 +77,48 @@ export function DictionariesPage({
                 >
                   {isSelected ? "Selected" : "Select"}
                 </button>
-                <select
-                  value={dict.language ?? "null"}
-                  onChange={(e) =>
-                    handleChangeBookLanguage(dict.id, e.target.value || null)
-                  }
-                  className="pronounciation-selection"
-                >
-                  <option value="null">Language not defined</option>
-                  {languages.map((lang) => (
-                    <option key={lang} value={lang}>
-                      {lang}
-                    </option>
-                  ))}
-                </select>
+
+                <div className="dropdown-wrapper" onBlur={() => setTimeout(() => setOpenDropdowns({}), 200)}>
+                  <button
+                    className="dropdown-button"
+                    onClick={() =>
+                      setOpenDropdowns((prev) => ({
+                        [dict.id]: !prev[dict.id],
+                      }))
+                    }
+                  >
+                    {dict.language ?? "Language not defined"}
+                  </button>
+                  {openDropdowns[dict.id] && (
+                    <ul className="dropdown-menu">
+                      <li
+                        onClick={() => {
+                          handleChangeBookLanguage(dict.id, null);
+                          setOpenDropdowns((prev) => ({
+                            ...prev,
+                            [dict.id]: false,
+                          }));
+                        }}
+                      >
+                        Language not defined
+                      </li>
+                      {languages.map((lang) => (
+                        <li
+                          key={lang}
+                          onClick={() => {
+                            handleChangeBookLanguage(dict.id, lang);
+                            setOpenDropdowns((prev) => ({
+                              ...prev,
+                              [dict.id]: false,
+                            }));
+                          }}
+                        >
+                          {lang}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             </div>
           );
