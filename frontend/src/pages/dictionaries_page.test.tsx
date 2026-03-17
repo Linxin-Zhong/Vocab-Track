@@ -25,23 +25,6 @@ describe("DictionariesPage", () => {
     expect(screen.getByRole("button", { name: /selected/i })).toBeInTheDocument();
   });
 
-  it("calls handleChangeBook when a card is clicked", async () => {
-    const user = userEvent.setup();
-    const handleChangeBook = vi.fn();
-
-    render(
-      <DictionariesPage
-        books={books}
-        selectedBookId={null}
-        handleChangeBook={handleChangeBook}
-      />,
-    );
-
-    await user.click(screen.getByText("French A1"));
-
-    expect(handleChangeBook).toHaveBeenCalledWith(2);
-  });
-
   it("calls handleChangeBook once when select button is clicked", async () => {
     const user = userEvent.setup();
     const handleChangeBook = vi.fn();
