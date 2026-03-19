@@ -102,7 +102,6 @@ export async function getBooks(): Promise<Book[]> {
   const data = await apiRequest<BackendBook[] | PaginatedResponse<BackendBook>>(
     ENDPOINTS.BOOK.BASE,
   );
-  console.log("Raw book data from API:", data);
   return normalizeListResponse<BackendBook>(data)
     .map(normalizeBook)
     .filter((book): book is Book => book !== null);
