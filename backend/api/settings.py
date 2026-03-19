@@ -14,6 +14,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 import dj_database_url
+import re
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -74,11 +75,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-FRONTEND_EXTERNAL_URL = os.environ.get('FRONTEND_EXTERNAL_URL')
-if FRONTEND_EXTERNAL_URL:
-    CORS_ALLOWED_ORIGINS = [FRONTEND_EXTERNAL_URL]
-else:
-    CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
+CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://vocabtrack.*\.onrender\.com$"]
 
 CORS_ALLOW_CREDENTIALS = True
 
