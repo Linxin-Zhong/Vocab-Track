@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Book } from "../services/bookService";
 import "./dictionaries_page.css";
-import { click } from "@testing-library/user-event/dist/cjs/convenience/click.js";
 
 type DictionariesPageProps = {
   handleChangeBook: (bookId: number) => void;
@@ -17,7 +16,6 @@ export function DictionariesPage({
   books,
 }: DictionariesPageProps) {
   const [languages, setLanguages] = useState<string[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [openDropdowns, setOpenDropdowns] = useState<{
     [bookId: number]: boolean;
   }>({});

@@ -21,7 +21,7 @@ function makeFile(content: string, name: string, type: string) {
 
 function renderImportPage(overrides?: Partial<ComponentProps<typeof ImportWordsPage>>) {
   const props: ComponentProps<typeof ImportWordsPage> = {
-    books: [{ id: 1, book_name: "Core Words", is_default: false }],
+    books: [{ id: 1, book_name: "Core Words", is_default: false, language: "en-US" }],
     selectedBookId: 1,
     onChangeBook: vi.fn(),
     onCreateBook: vi.fn().mockResolvedValue({

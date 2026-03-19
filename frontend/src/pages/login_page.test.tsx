@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LoginPage } from "./login_page";
+import { describe, it, expect } from "vitest";
 
 describe("LoginPage", () => {
   it("switches to Sign Up and validates mismatched passwords", async () => {

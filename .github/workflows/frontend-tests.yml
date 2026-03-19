@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run Typecheck
+        run: npm run typecheck
+
       - name: Run Vitest with coverage
         run: npm run test:run -- --coverage --coverage.reporter=text --coverage.reporter=html
 

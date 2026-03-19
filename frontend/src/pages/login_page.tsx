@@ -21,7 +21,6 @@ export function LoginPage({ onLogin, onRegister }: LoginPageProps) {
     setError("");
     try {
       await onLogin?.(email, password);
-      console.log("1234")
     } catch (err) {
       if (err instanceof AuthError) {
         setError(err.message);

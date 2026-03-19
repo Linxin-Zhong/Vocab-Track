@@ -5,8 +5,8 @@ import { DictionariesPage } from "./dictionaries_page";
 
 describe("DictionariesPage", () => {
   const books = [
-    { id: 1, book_name: "Core Words", is_default: true },
-    { id: 2, book_name: "French A1", is_default: false },
+    { id: 1, book_name: "Core Words", is_default: true, language: "en-US" },
+    { id: 2, book_name: "French A1", is_default: false, language: "en-US" },
   ];
 
   it("renders available dictionaries and selected confirmation", () => {
@@ -15,6 +15,7 @@ describe("DictionariesPage", () => {
         books={books}
         selectedBookId={2}
         handleChangeBook={vi.fn()}
+        handleChangeBookLanguage={vi.fn()}
       />,
     );
 
@@ -34,6 +35,7 @@ describe("DictionariesPage", () => {
         books={books}
         selectedBookId={null}
         handleChangeBook={handleChangeBook}
+        handleChangeBookLanguage={vi.fn()}
       />,
     );
 
