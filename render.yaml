@@ -20,7 +20,7 @@ services:
       - key: PORT
         value: 8000
       - key: FRONTEND_EXTERNAL_URL
-        value: https://vocabtrack-q0qk.onrender.com
+        value: https://vocabtrack.onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: vocabtrack-db
