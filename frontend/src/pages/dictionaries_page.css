@@ -46,6 +46,7 @@
   flex-direction: column;
   gap: 1.25rem; /* space-y-5 */
   transition: all 0.2s;
+  overflow: visible;
 }
 
 .dictionary-card:hover {
@@ -162,4 +163,52 @@
 
 .start-button:hover {
   background-color: #1f2937; /* slightly lighter on hover */
+}
+
+.dropdown-wrapper {
+  position: relative; /* allow absolute positioning of menu */
+  display: inline-block; /* fit the button width */
+}
+
+.dropdown-button {
+  width: 200px; /* or any fixed width you want */
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: white;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;  /* right below button */
+  left: 0;
+  width: 100%; /* **matches the button width** */
+  max-height: 150px; /* optional scroll for long lists */
+  overflow-y: auto;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  z-index: 10;
+}
+
+.dropdown-menu li {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.dropdown-menu li:hover {
+  background-color: #f3f4f6;
+}
+
+.pronounciationList {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem; /* space-y-2 */
+}
+
+.pronounciationLabel {
+  padding: 0.5rem;
 }

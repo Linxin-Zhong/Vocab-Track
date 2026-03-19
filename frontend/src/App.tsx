@@ -16,6 +16,7 @@ import {
   type ReviewSessionWord,
 } from "./services/reviewService";
 import { changeSelectedBook } from "./services/selectedBookService";
+import { changeBookLanguage } from "./services/bookLanguageService";
 
 type Screen =
   | "landing"
@@ -295,13 +296,13 @@ export default function App() {
         throw new Error("No books available");
       }
       const startedSession = await startReviewSession(
-        currentBookId? currentBookId : books[0].id,
+        currentBookId ? currentBookId : books[0].id,
         DEFAULT_REVIEW_LIMIT,
       );
 
       const nextSession: ActiveSession = {
         session_id: startedSession.session_id,
-        book_id: currentBookId? currentBookId : books[0].id,
+        book_id: currentBookId ? currentBookId : books[0].id,
         words: startedSession.words,
       };
 
@@ -328,20 +329,39 @@ export default function App() {
     }
   };
 
+  const handleChangeBookLanguage = async (
+    bookId: number,
+    language: string | null,
+  ) => {
+    if (currentUserId.current === null) {
+      console.error("Cannot change book language: no user ID");
+      return;
+    }
+    const res = await changeBookLanguage(bookId, language);
+    if (res.success) {
+      setBookList((prev) =>
+        prev.map((book) => (book.id === bookId ? { ...book, language } : book)),
+      );
+      console.log("Changed book language successfully");
+    } else {
+      console.error("Failed to change book language");
+    }
+  };
+
   const handleChangeBook = async (bookId: number) => {
     if (currentUserId.current === null) {
       console.error("Cannot change book: no user ID");
       return;
     } else {
-      if (bookId != currentBookId){
+      if (bookId != currentBookId) {
         clearActiveSession(currentUserEmail);
         const res = await changeSelectedBook(currentUserId.current, bookId);
-      if (res.success) {
-        setCurrentBookId(bookId);
-        console.log("Changed book successfully");
-      } else {
-        console.error("Failed to change book");
-      }
+        if (res.success) {
+          setCurrentBookId(bookId);
+          console.log("Changed book successfully");
+        } else {
+          console.error("Failed to change book");
+        }
       } else {
         console.log("Selected book is already active");
       }
@@ -439,10 +459,15 @@ export default function App() {
           startSessionError={startSessionError}
         />
       )}
-      {currentScreen === "progress" && <ProgressPage studyingDictionary={currentBookId?currentBookId:null}/>}
+      {currentScreen === "progress" && (
+        <ProgressPage
+          studyingDictionary={currentBookId ? currentBookId : null}
+        />
+      )}
       {currentScreen === "dictionaries" && (
         <DictionariesPage
           handleChangeBook={handleChangeBook}
+          handleChangeBookLanguage={handleChangeBookLanguage}
           selectedBookId={activeSession?.book_id ?? currentBookId}
           books={bookList}
         />
@@ -463,6 +488,11 @@ export default function App() {
           sessionId={activeSession?.session_id ?? null}
           sessionWords={activeSession?.words ?? null}
           bookId={activeSession?.book_id ?? currentBookId}
+          bookLanguage={
+            bookList.find(
+              (book) => book.id === (activeSession?.book_id ?? currentBookId),
+            )?.language ?? null
+          }
         />
       )}
       {currentScreen === "summary" && (

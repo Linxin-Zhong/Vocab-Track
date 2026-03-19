@@ -20,6 +20,7 @@ type FlashcardProps = {
   sessionId?: number | null;
   sessionWords?: ReviewSessionWord[] | null;
   bookId?: number | null;
+  bookLanguage?: string | null;
 };
 
 type StudyWord = Pick<Word, "word_text" | "meaning" | "example"> & {
@@ -52,6 +53,7 @@ export function Flashcard({
   sessionId,
   sessionWords,
   bookId,
+  bookLanguage,
 }: FlashcardProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("question");
   const [loading, setLoading] = useState(true);
@@ -70,6 +72,12 @@ export function Flashcard({
   const currentWord = words[currentIndex];
   const isSessionComplete = words.length > 0 && currentIndex >= words.length;
   const isFeedbackVisible = feedbackMessage != null;
+
+  const playPronunciation = (word: string) => {
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = bookLanguage ?? "en-US";
+    speechSynthesis.speak(utterance);
+  };
 
   const goToNextCard = () => {
     setCurrentIndex((prev) => prev + 1);
@@ -162,17 +170,22 @@ export function Flashcard({
           // Keep book selection consistent with start-session policy.
           const books = await getBooks();
           if (!books.length) return rawSessionWords;
-          targetBookId = (books.find((book) => !book.is_default) ?? books[0]).id;
+          targetBookId = (books.find((book) => !book.is_default) ?? books[0])
+            .id;
         }
 
         const fullWords = await getWordsByBookId(targetBookId);
         const exampleByWordText = new Map(
-          fullWords.map((word) => [word.word_text.trim().toLowerCase(), word.example]),
+          fullWords.map((word) => [
+            word.word_text.trim().toLowerCase(),
+            word.example,
+          ]),
         );
 
         return rawSessionWords.map((word) => ({
           ...word,
-          example: exampleByWordText.get(word.word_text.trim().toLowerCase()) ?? null,
+          example:
+            exampleByWordText.get(word.word_text.trim().toLowerCase()) ?? null,
         }));
       } catch {
         // Fall back to session words if enrichment fails.
@@ -193,7 +206,8 @@ export function Flashcard({
         if (sessionId != null && sessionWords != null) {
           // Preferred path: words returned by `/review/start/` for this session.
           if (isMounted) {
-            const enrichedWords = await enrichSessionWordsWithExamples(sessionWords);
+            const enrichedWords =
+              await enrichSessionWordsWithExamples(sessionWords);
             if (!isMounted) return;
             setWords(enrichedWords);
             setCurrentIndex(0);
@@ -216,7 +230,8 @@ export function Flashcard({
           //   in the `books` array, relying on the API/backend to provide books in
           //   a deterministic, user-meaningful order (e.g., user preference or recency).
           // - If no non-default books exist, fall back to the first (default) book.
-          targetBookId = (books.find((book) => !book.is_default) ?? books[0]).id;
+          targetBookId = (books.find((book) => !book.is_default) ?? books[0])
+            .id;
         }
 
         const fetchedWords = await getWordsByBookId(targetBookId);
@@ -255,11 +270,7 @@ export function Flashcard({
   const handleSubmitAnswer = async (isCorrect: boolean) => {
     if (answerLoading || endLoading || isFeedbackVisible) return;
 
-    if (
-      sessionId != null &&
-      currentWord &&
-      currentWord.user_word_id != null
-    ) {
+    if (sessionId != null && currentWord && currentWord.user_word_id != null) {
       // Backend session mode only: persist answers to keep scheduling/statistics server-authoritative.
       setAnswerLoading(true);
       try {
@@ -380,7 +391,13 @@ export function Flashcard({
             <>
               <div className="flashcard-content">
                 <h1 className="flashcard-word">{currentWord.word_text}</h1>
-
+                {bookLanguage && (
+                  <button
+                    onClick={() => playPronunciation(currentWord.word_text)}
+                  >
+                    🔊
+                  </button>
+                )}
                 {viewMode === "answer" && (
                   <div className="flashcard-answer-text">
                     <p className="flashcard-meaning">{currentWord.meaning}</p>

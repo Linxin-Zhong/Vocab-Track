@@ -11,6 +11,7 @@ class Book(models.Model):
         blank=True,  # Allow blank field for default books
         db_column="user_id",
     )
+    language = models.CharField(max_length=20, null=True, blank=True)
     create_time = models.DateTimeField(auto_now_add=True, db_column="create_time")
 
     class Meta:

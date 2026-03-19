@@ -67,6 +67,17 @@ class BookModelTest(TestCase):
         default_book = Book.objects.create(user=None, book_name="Default Book")
         self.assertFalse(user_book.is_default)
         self.assertTrue(default_book.is_default)
+    
+    def test_create_book_with_language(self):
+        """Test creating a book with language field"""
+        book = Book.objects.create(
+            user=self.user,
+            book_name="English Book",
+            language="en-US"
+        )
+        self.assertEqual(book.language, "en-US")
+        self.assertEqual(book.user, self.user)
+        self.assertEqual(book.book_name, "English Book")
 
 
 class BookWordModelTest(TestCase):
@@ -196,6 +207,17 @@ class BookSerializerTest(TestCase):
         """Test that is_default is read-only"""
         serializer = BookSerializer(self.user_book)
         self.assertTrue(serializer.fields["is_default"].read_only)
+
+    def test_serializer_includes_language(self):
+        """Test that BookSerializer includes the language field"""
+        book = Book.objects.create(
+            user=self.user,
+            book_name="French Book",
+            language="fr-FR"
+        )
+        serializer = BookSerializer(book)
+        data = serializer.data
+        self.assertEqual(data.get("language"), "fr-FR")
 
 
 class BookWordSerializerTest(TestCase):

@@ -54,8 +54,8 @@ describe("Flashcard", () => {
 
   it("loads words from non-default book first", async () => {
     mockGetBooks.mockResolvedValueOnce([
-      { id: 1, book_name: "Default", is_default: true },
-      { id: 2, book_name: "My Deck", is_default: false },
+      { id: 1, book_name: "Default", is_default: true, language: "en-US" },
+      { id: 2, book_name: "My Deck", is_default: false, language: "en-US" },
     ]);
     mockGetWordsByBookId.mockResolvedValueOnce([
       { id: 10, word_text: "abate", meaning: "to lessen", difficulty: 2 },
@@ -71,7 +71,7 @@ describe("Flashcard", () => {
   it("reveals answer content after clicking Show Answer", async () => {
     const user = userEvent.setup();
     mockGetBooks.mockResolvedValueOnce([
-      { id: 3, book_name: "Deck", is_default: false },
+      { id: 3, book_name: "Deck", is_default: false, language: "en-US" },
     ]);
     mockGetWordsByBookId.mockResolvedValueOnce([
       {
@@ -108,7 +108,7 @@ describe("Flashcard", () => {
     const onQuit = vi.fn();
     const user = userEvent.setup();
     mockGetBooks.mockResolvedValueOnce([
-      { id: 4, book_name: "Deck", is_default: true },
+      { id: 4, book_name: "Deck", is_default: true, language: "en-US" },
     ]);
     mockGetWordsByBookId.mockResolvedValueOnce([
       { id: 99, word_text: "zeal", meaning: "great energy", difficulty: 2 },
@@ -141,7 +141,7 @@ describe("Flashcard", () => {
     try {
       const user = userEvent.setup();
       mockGetBooks.mockResolvedValueOnce([
-        { id: 6, book_name: "Deck", is_default: false },
+        { id: 6, book_name: "Deck", is_default: false, language: "en-US" },
       ]);
       mockGetWordsByBookId.mockResolvedValueOnce([
         {
@@ -201,7 +201,7 @@ describe("Flashcard", () => {
       const onQuit = vi.fn();
       const user = userEvent.setup();
       mockGetBooks.mockResolvedValueOnce([
-        { id: 7, book_name: "Deck", is_default: false },
+        { id: 7, book_name: "Deck", is_default: false, language: "en-US" },
       ]);
       mockGetWordsByBookId.mockResolvedValueOnce([
         {

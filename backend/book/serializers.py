@@ -30,6 +30,7 @@ class BookSerializer(serializers.ModelSerializer):
             "avg_accuracy",
             "rw_trend",
             "rw_words",
+            "language",
         ]
 
     def get_words_num(self, obj):
@@ -174,7 +175,7 @@ class BookBasicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Book
-        fields = ["book_id", "book_name", "is_default", "words_num"]
+        fields = ["book_id", "book_name", "is_default", "words_num", "language"]
 
     def get_words_num(self, obj):
         return BookWord.objects.filter(book=obj).count()
