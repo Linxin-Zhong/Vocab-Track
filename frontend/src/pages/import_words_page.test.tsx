@@ -309,9 +309,8 @@ describe("ImportWordsPage", () => {
       ],
       failed: [
         {
-          row_number: 2,
           word_text: "salut",
-          error: "duplicate",
+          reason: "duplicate",
         },
       ],
     });
