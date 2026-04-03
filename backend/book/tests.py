@@ -12,6 +12,7 @@ from book.serializers import (
 from word.models import Word
 from user.models import User
 from review.models import UserWord, ReviewSession, ReviewItem
+from api.utils import format_serializer_errors
 
 
 class BookModelTest(TestCase):
@@ -200,6 +201,7 @@ class BookSerializerTest(TestCase):
                 "avg_accuracy",
                 "rw_trend",
                 "rw_words",
+                "language",
             },
         )
 
@@ -257,6 +259,36 @@ class BookWordSerializerTest(TestCase):
         """Test that word_text is read-only"""
         serializer = BookWordSerializer(self.book_word)
         self.assertTrue(serializer.fields["word_text"].read_only)
+
+
+class FormatSerializerErrorsTest(TestCase):
+    """Test cases for serializer error formatting."""
+
+    def test_formats_dict_errors(self):
+        errors = {
+            "book_name": ["This field is required."],
+            "language": "Not supported.",
+        }
+
+        result = format_serializer_errors(errors)
+
+        self.assertEqual(
+            result,
+            "book_name: This field is required.; language: Not supported.",
+        )
+
+    def test_formats_list_errors(self):
+        errors = [
+            {"word_text": ["This field is required."]},
+            "Unexpected row format.",
+        ]
+
+        result = format_serializer_errors(errors)
+
+        self.assertEqual(
+            result,
+            "Item 0 - word_text: This field is required.; Item 1: Unexpected row format.",
+        )
 
 
 class BookWordCreateSerializerTest(TestCase):

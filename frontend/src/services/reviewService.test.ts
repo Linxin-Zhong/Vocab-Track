@@ -50,6 +50,26 @@ describe("reviewService", () => {
     });
   });
 
+  it("falls back to an empty meaning when no valid meaning fields exist", async () => {
+    mockApiRequest.mockResolvedValueOnce({
+      session_id: 321,
+      words: [
+        {
+          user_word_id: 9,
+          word_text: "opaque",
+          meaning: "   ",
+          meanings: ["", "   "],
+        },
+      ],
+    });
+
+    const data = await startReviewSession(10, 5);
+
+    expect(data.words).toEqual([
+      { user_word_id: 9, word_text: "opaque", meaning: "" },
+    ]);
+  });
+
   it("throws backend detail when no review session is created", async () => {
     mockApiRequest.mockResolvedValueOnce({
       detail: "no words to review",

@@ -25,6 +25,11 @@ describe("Flashcard", () => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
     vi.useRealTimers();
+    vi.spyOn(window.speechSynthesis, "speak").mockImplementation(() => {});
+    vi.stubGlobal(
+      "SpeechSynthesisUtterance",
+      vi.fn().mockImplementation((text: string) => ({ text, lang: "" })),
+    );
   });
 
   it("shows loading first and then renders no words state when no books", async () => {
@@ -330,4 +335,99 @@ describe("Flashcard", () => {
       setTimeoutSpy.mockRestore();
     }
   }, 10000);
+
+  it("plays pronunciation when a book language is available", async () => {
+    const user = userEvent.setup();
+    mockGetBooks.mockResolvedValueOnce([
+      { id: 3, book_name: "Deck", is_default: false, language: "fr-FR" },
+    ]);
+    mockGetWordsByBookId.mockResolvedValueOnce([
+      {
+        id: 11,
+        word_text: "bonjour",
+        meaning: "hello",
+        example: "Bonjour, Marie",
+        difficulty: 1,
+      },
+    ]);
+
+    render(<Flashcard onQuit={vi.fn()} bookLanguage="fr-FR" />);
+
+    await screen.findByRole("heading", { name: "bonjour" });
+    await user.click(screen.getByRole("button", { name: "🔊" }));
+
+    expect(window.speechSynthesis.speak).toHaveBeenCalledTimes(1);
+  });
+
+  it("falls back to local stats when ending a backend session returns 404", async () => {
+    const onQuit = vi.fn();
+    const user = userEvent.setup();
+    mockGetWordsByBookId.mockResolvedValueOnce([
+      { id: 10, word_text: "abate", meaning: "to lessen", difficulty: 2 },
+    ]);
+    mockEndReviewSession.mockRejectedValueOnce({ status: 404 });
+
+    render(
+      <Flashcard
+        onQuit={onQuit}
+        sessionId={12}
+        bookId={2}
+        sessionWords={[{ user_word_id: 10, word_text: "abate", meaning: "to lessen" }]}
+      />,
+    );
+
+    await screen.findByRole("heading", { name: /abate/i });
+    await user.click(screen.getByRole("button", { name: /quit session/i }));
+
+    await waitFor(() => expect(onQuit).toHaveBeenCalledTimes(1));
+  });
+
+  it("uses raw session words when enrichment cannot resolve a target book", async () => {
+    mockGetBooks.mockResolvedValueOnce([]);
+
+    render(
+      <Flashcard
+        onQuit={vi.fn()}
+        sessionId={12}
+        sessionWords={[{ user_word_id: 10, word_text: "abate", meaning: "to lessen" }]}
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { name: /abate/i })).toBeInTheDocument();
+    expect(mockGetWordsByBookId).not.toHaveBeenCalled();
+  });
+
+  it("falls back to raw session words when enrichment fetch fails", async () => {
+    mockGetWordsByBookId.mockRejectedValueOnce(new Error("boom"));
+
+    render(
+      <Flashcard
+        onQuit={vi.fn()}
+        sessionId={12}
+        bookId={2}
+        sessionWords={[{ user_word_id: 10, word_text: "abate", meaning: "to lessen" }]}
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { name: /abate/i })).toBeInTheDocument();
+  });
+
+  it("limits local practice sessions to five sampled words", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0);
+    mockGetBooks.mockResolvedValueOnce([
+      { id: 3, book_name: "Deck", is_default: false, language: "en-US" },
+    ]);
+    mockGetWordsByBookId.mockResolvedValueOnce(
+      Array.from({ length: 7 }, (_, index) => ({
+        id: index + 1,
+        word_text: `word-${index + 1}`,
+        meaning: `meaning-${index + 1}`,
+        difficulty: 1,
+      })),
+    );
+
+    render(<Flashcard onQuit={vi.fn()} />);
+
+    expect(await screen.findByText(/card 1 of 5/i)).toBeInTheDocument();
+  });
 });

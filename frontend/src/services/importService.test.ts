@@ -107,4 +107,38 @@ describe("importService", () => {
       status: 500,
     });
   });
+
+  it("uses backend detail field when message is absent", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
+      ok: false,
+      status: 422,
+      json: async () => ({
+        detail: "Import payload is invalid.",
+      }),
+    } as Response);
+
+    await expect(
+      importWordsEntries(5, [{ word_text: "keen", meaning: "eager" }]),
+    ).rejects.toMatchObject({
+      message: "Import payload is invalid.",
+      status: 422,
+    });
+  });
+
+  it("falls back to the default message when error json has no message fields", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      json: async () => ({
+        code: "bad_request",
+      }),
+    } as Response);
+
+    await expect(
+      importWordsEntries(5, [{ word_text: "keen", meaning: "eager" }]),
+    ).rejects.toMatchObject({
+      message: "Failed to import words.",
+      status: 400,
+    });
+  });
 });

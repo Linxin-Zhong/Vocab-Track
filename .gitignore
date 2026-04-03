@@ -31,4 +31,6 @@ db.sqlite3
 # Frontend test artifacts
 frontend/coverage/
 coverage/
+.coverage
+.coverage.*
 *.lcov
