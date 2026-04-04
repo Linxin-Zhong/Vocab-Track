@@ -6,6 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework import status
 
 from review.models import UserWord, ReviewSession, ReviewItem
+from review.algorithm import calculate_adaptive_interval
 from review.serializers import (
     ReviewStartSerializer,
     ReviewAnswerSerializer,
@@ -772,3 +773,51 @@ class ReviewEndViewTest(APITestCase):
         self.assertEqual(self.session.total_cnt, 1)
         self.assertEqual(self.session.correct_cnt, 1)
         self.assertEqual(self.session.accuracy, 1.0)
+
+
+class ReviewAlgorithmTest(TestCase):
+    """Test cases for adaptive interval calculation."""
+
+    def test_first_correct_answer_uses_minimum_one_day_interval(self):
+        ease_factor, delta = calculate_adaptive_interval(
+            is_correct=True,
+            ease_factor=0,
+            correct_times=0,
+            wrong_times=0,
+        )
+
+        self.assertEqual(ease_factor, 1)
+        self.assertEqual(delta, timedelta(days=1))
+
+    def test_good_accuracy_correct_answer_uses_medium_interval(self):
+        ease_factor, delta = calculate_adaptive_interval(
+            is_correct=True,
+            ease_factor=10,
+            correct_times=3,
+            wrong_times=1,
+        )
+
+        self.assertEqual(ease_factor, 11)
+        self.assertEqual(delta, timedelta(days=11))
+
+    def test_borderline_accuracy_correct_answer_uses_base_interval(self):
+        ease_factor, delta = calculate_adaptive_interval(
+            is_correct=True,
+            ease_factor=10,
+            correct_times=2,
+            wrong_times=1,
+        )
+
+        self.assertEqual(ease_factor, 11)
+        self.assertEqual(delta, timedelta(days=7))
+
+    def test_wrong_answer_never_drops_ease_factor_below_zero(self):
+        ease_factor, delta = calculate_adaptive_interval(
+            is_correct=False,
+            ease_factor=0,
+            correct_times=0,
+            wrong_times=0,
+        )
+
+        self.assertEqual(ease_factor, 0)
+        self.assertEqual(delta, timedelta(days=1))

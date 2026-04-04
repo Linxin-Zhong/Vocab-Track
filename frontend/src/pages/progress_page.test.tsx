@@ -142,4 +142,20 @@ describe("ProgressPage", () => {
       expect.objectContaining({ wordText: "bonjour", dictionaryKey: 2 }),
     );
   });
+
+  it("renders the empty word-performance state when no reviewed words exist", async () => {
+    mockGetProgressDictionaryOptions.mockResolvedValueOnce([
+      { key: 1, label: "Core Words" },
+    ]);
+    mockGetProgressData.mockResolvedValueOnce({
+      summary: { wordsStudied: 0, daysActive: 1, avgAccuracy: 0 },
+      dailyActivity: [{ date: "2026-03-10", count: 1 }],
+      dailyAccuracy: [{ date: "2026-03-10", accuracy: 0 }],
+      wordPerformance: [],
+    });
+
+    render(<ProgressPage studyingDictionary={1} />);
+
+    expect(await screen.findByText(/no words reviewed yet/i)).toBeInTheDocument();
+  });
 });

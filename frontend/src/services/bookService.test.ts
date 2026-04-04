@@ -113,6 +113,34 @@ describe("bookService", () => {
 
       expect(result).toEqual([]);
     });
+
+    it("filters out invalid word rows", async () => {
+      mockApiRequest.mockResolvedValueOnce([
+        {
+          id: 5,
+          word_text: "valid",
+          meaning: "usable",
+          difficulty: 2,
+        },
+        {
+          id: 6,
+          word_text: "broken",
+          meaning: "missing difficulty",
+        },
+      ]);
+
+      const result = await getWordsByBookId(3);
+
+      expect(result).toEqual([
+        {
+          id: 5,
+          word_text: "valid",
+          meaning: "usable",
+          example: null,
+          difficulty: 2,
+        },
+      ]);
+    });
   });
 
   describe("createBook", () => {

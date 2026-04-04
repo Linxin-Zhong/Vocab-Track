@@ -97,4 +97,47 @@ describe("Dashboard", () => {
 
     expect(onViewProgress).toHaveBeenCalledTimes(1);
   });
+
+  it("renders dictionaries and import buttons when handlers are provided", async () => {
+    const user = userEvent.setup();
+    const onViewDictionaries = vi.fn();
+    const onImportWords = vi.fn();
+
+    render(
+      <Dashboard
+        wordsReviewedToday={0}
+        onStartSession={() => {}}
+        onViewDictionaries={onViewDictionaries}
+        onImportWords={onImportWords}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /dictionaries/i }));
+    await user.click(screen.getByRole("button", { name: /import words/i }));
+
+    expect(onViewDictionaries).toHaveBeenCalledTimes(1);
+    expect(onImportWords).toHaveBeenCalledTimes(1);
+  });
+
+  it("catches rejected start-session promises to avoid unhandled errors", async () => {
+    const user = userEvent.setup();
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      render(
+        <Dashboard
+          wordsReviewedToday={0}
+          onStartSession={() => Promise.reject(new Error("boom"))}
+        />,
+      );
+
+      await user.click(
+        screen.getByRole("button", { name: /start study session/i }),
+      );
+
+      expect(errorSpy).toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
 });

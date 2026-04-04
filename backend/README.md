@@ -75,8 +75,8 @@ python manage.py test review
 
 Run a specific test class or method:
 ```bash
-python manage.py test book.test.BookViewSetTest
-python manage.py test book.test.BookViewSetTest.test_create_book_successfully
+python manage.py test book.tests.BookViewSetTest
+python manage.py test book.tests.BookViewSetTest.test_create_book_successfully
 ```
 
 Run tests with coverage and generate HTML report:
