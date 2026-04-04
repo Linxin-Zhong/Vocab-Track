@@ -123,15 +123,21 @@ describe("Dashboard", () => {
     const user = userEvent.setup();
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    render(
-      <Dashboard
-        wordsReviewedToday={0}
-        onStartSession={() => Promise.reject(new Error("boom"))}
-      />,
-    );
+    try {
+      render(
+        <Dashboard
+          wordsReviewedToday={0}
+          onStartSession={() => Promise.reject(new Error("boom"))}
+        />,
+      );
 
-    await user.click(screen.getByRole("button", { name: /start study session/i }));
+      await user.click(
+        screen.getByRole("button", { name: /start study session/i }),
+      );
 
-    expect(errorSpy).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+    }
   });
 });
