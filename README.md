@@ -2,7 +2,9 @@
 A lightweight vocabulary learning application featuring a flashcard-based interface with adaptive review scheduling and performance-based personalization to support efficient daily language practice.
 
 ## Demo Video
-https://github.com/user-attachments/assets/7ba8b4b3-80c2-46e0-943f-1bde496a5c7d
+https://github.com/user-attachments/assets/f2acec3b-ad32-4d1f-a3ef-31fb88b20e85
+
+
 
 ## Project Documentation
 Please see the Confluence page below for the guidelines for running and system design documentations.
